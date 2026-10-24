@@ -1,7 +1,8 @@
 {
   "recorded_at": "2026-10-24T21:20:08+08:00",
+  "structure_recorded_at": "2026-10-24T22:01:04+08:00",
   "unit": "seconds",
-  "definition": "每个场景从本次工具接收输入起独立计时；elapsed_seconds 截止该命令返回，total_seconds 截止工具完成本地整理。",
+  "definition": "仅第四工具本轮重新联网；其他场景沿用旧采集。各场景独立计时，elapsed_seconds 截至命令返回，total_seconds 截至工具整理完成。",
   "scenarios": [
     {
       "name": "知识库检索",
@@ -910,7 +911,7 @@
         "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
         "depth": 2
       },
-      "total_seconds": 0.61,
+      "total_seconds": 0.576,
       "commands": [
         {
           "command": [
@@ -933,8 +934,8 @@
           ],
           "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
           "revision": 71,
-          "seconds": 0.606,
-          "elapsed_seconds": 0.607,
+          "seconds": 0.574,
+          "elapsed_seconds": 0.575,
           "content_chars": 15248
         }
       ]
@@ -1999,6 +2000,250 @@
           "seconds": 1.033,
           "elapsed_seconds": 12.187,
           "content_chars": 0
+        }
+      ]
+    },
+    {
+      "name": "整篇默认一层",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd"
+      },
+      "total_seconds": 0.711,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 71,
+          "seconds": 0.707,
+          "elapsed_seconds": 0.708,
+          "content_chars": 15248
+        }
+      ]
+    },
+    {
+      "name": "局部默认一层",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "section": "doxcnmJKafU9Eib6gxgiySzXGth"
+      },
+      "total_seconds": 0.517,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 71,
+          "seconds": 0.513,
+          "elapsed_seconds": 0.514,
+          "content_chars": 15248
+        }
+      ]
+    },
+    {
+      "name": "局部展开两层",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "section": "doxcnmJKafU9Eib6gxgiySzXGth",
+        "depth": 2
+      },
+      "total_seconds": 0.62,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 71,
+          "seconds": 0.616,
+          "elapsed_seconds": 0.617,
+          "content_chars": 15248
+        }
+      ]
+    },
+    {
+      "name": "叶子章节结构",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "section": "doxcnBGzFjafgXiTPB5CI694ERc"
+      },
+      "total_seconds": 0.566,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 71,
+          "seconds": 0.562,
+          "elapsed_seconds": 0.563,
+          "content_chars": 15248
+        }
+      ]
+    },
+    {
+      "name": "开篇正文结构",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "section": "@opening"
+      },
+      "total_seconds": 0.55,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 71,
+          "seconds": 0.547,
+          "elapsed_seconds": 0.548,
+          "content_chars": 15248
+        }
+      ]
+    },
+    {
+      "name": "无标题文章结构",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf"
+      },
+      "total_seconds": 0.69,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 7,
+          "seconds": 0.687,
+          "elapsed_seconds": 0.688,
+          "content_chars": 14454
+        }
+      ]
+    },
+    {
+      "name": "无标题单位下钻",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+        "section": "@document"
+      },
+      "total_seconds": 0.665,
+      "commands": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "revision": 7,
+          "seconds": 0.661,
+          "elapsed_seconds": 0.662,
+          "content_chars": 14454
         }
       ]
     }

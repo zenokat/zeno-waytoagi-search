@@ -102,8 +102,8 @@ def run_demo(output):
                            "elapsed_seconds": call["elapsed_seconds"],
                            "content_chars": call["content_chars"]})
         scenarios.append({"name": name, "explain": explanation, "input": arguments,
-                          "output": result if method in {"search", "summaries", "locate"} else compact_result(result),
-                          "exact_output": method in {"search", "summaries", "locate"}, "diagnostics": p.diagnostics,
+                          "output": result if method in {"search", "summaries", "locate", "structure"} else compact_result(result),
+                          "exact_output": method in {"search", "summaries", "locate", "structure"}, "diagnostics": p.diagnostics,
                           "native": native, "local_result": result_path,
                           "total_seconds": total_seconds})
         print(name + "完成", flush=True)
@@ -229,9 +229,10 @@ def run_demo(output):
     assert "按需原生续页" in checks
     write_json(output / "continuation-checks.json", continuation_evidence)
 
-    structure, _ = capture("篇章结构获取", "原文 H1 下直接接 H3；工具按真实父子关系返回第二层，而非用 H 数字当展开深度。",
+    structure, structure_context = capture("篇章结构获取", "原文 H1 下直接接 H3；工具按真实父子关系返回第二层，而非用 H 数字当展开深度。",
         {"article": SAMPLE, "depth": 2}, "structure", article=SAMPLE, depth=2)
-    children = [u for u in structure["units"] if u.get("rank") == 3 and u["depth"] == 2]
+    structure_units = structure_context.diagnostics["structure_units"]
+    children = [u for u in structure_units if u.get("rank") == 3 and u["depth"] == 2]
     assert children and all(len(u["parents"]) == 1 for u in children)
     checks["章节层级"] = "H1 → H3 识别为父子两层"
 
@@ -287,7 +288,7 @@ def run_demo(output):
     assert empty["sections"] == [] and len(empty_context.calls) == 1
     checks["全文检索无命中"] = "真实空结果只发起 1 次 keyword 请求，没有全文预读"
 
-    parent = next(u for u in structure["units"] if u["id"] == children[0]["parents"][0])
+    parent = next(u for u in structure_units if u["id"] == children[0]["parents"][0])
     body, _ = capture("正文读取", "选择父章和其中子章，重叠只输出一次；只获取选区里的图片并嵌入本地路径。",
         {"article": SAMPLE, "sections": [parent["id"], children[0]["id"]]}, "read",
         article=SAMPLE, sections=[parent["id"], children[0]["id"]])

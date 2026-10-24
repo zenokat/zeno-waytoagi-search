@@ -284,8 +284,12 @@ class Prototype:
         return summaries(self, articles)
 
     def structure(self, article, section=None, depth=1):
-        """获取 article 在 section 下 depth 层实际标题；返回可读取单位，depth=1 表示直接子层。"""
-        if depth < 1:
+        """获取 article 在 section 下 depth 层标题树；返回标题、读取标识、类型和 children。
+
+        section 缺省从文章外层开始；指定时不重复基节点，depth=1 只列直接子层。
+        普通 read_unit 是原生标题块 ID；@opening/@document 是工具定义的特殊读取单位。
+        """
+        if type(depth) is not int or depth < 1:
             raise ValueError("展开深度须为正整数")
         document = self.fetch(article)
         _, units, _ = section_model(document["content"])
@@ -293,7 +297,15 @@ class Prototype:
         if section and not base:
             raise ValueError("不是可选的顶层章节")
         visible = [u for u in units if (section in u["parents"] and u["depth"] <= base["depth"] + depth)] if base else [u for u in units if u["depth"] <= depth]
-        return {"article": article, "revision": document["revision_id"], "units": visible}
+        roots, nodes = [], {}
+        # 原文顺序保证父章先出现；局部查询的基节点不在 nodes，其直接子章成为返回树根。
+        for unit in visible:
+            node = {"title": unit["title"], "read_unit": unit["id"], "kind": unit["kind"], "children": []}
+            nodes[unit["id"]] = node
+            parent = nodes.get(unit["parents"][-1]) if unit["parents"] else None
+            (parent["children"] if parent else roots).append(node)
+        self.diagnostics["structure_units"] = units
+        return {"article": article, "revision": document["revision_id"], "sections": roots}
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""
@@ -422,8 +434,8 @@ def main():
             result = prototype.read(args.article, args.sections, args.start, args.end)
         write_json(prototype.run_dir / "calls.json", prototype.calls)
         write_json(prototype.run_dir / "diagnostics.json", prototype.diagnostics)
-        # 已迭代的三个入口直接交付业务 JSON，诊断留本地，避免占用 Agent 阅读预算。
-        output = result if args.tool in {"search", "summaries", "locate"} else {"result": result, "evidence_dir": str(prototype.run_dir)}
+        # 已迭代的四个入口直接交付业务 JSON，诊断留本地，避免占用 Agent 阅读预算。
+        output = result if args.tool in {"search", "summaries", "locate", "structure"} else {"result": result, "evidence_dir": str(prototype.run_dir)}
         print(json.dumps(output, ensure_ascii=False, indent=2))
         return 0
     except (ValueError, KeyError, OSError, ET.ParseError) as error:

@@ -37,11 +37,26 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/prototype.py read
 ```
 
 - 继续检索：`search --cursor '<上次返回的 next_cursor>'`，保持同一个 `--cache-dir` 与配置。
-- 目录子层：`structure --section '<返回的章节 id>' --depth 1`。
+- 目录子层：`structure --section '<返回的 read_unit>' --depth 1`；只返回下一层，不重复所选章节。普通 read_unit 就是原生标题块 ID。
 - 单章或多章：`read --sections '<章节 id>' '<另一章节 id>'`。
 - 章节范围：`read --start '<起点章节 id>' --end '<终点章节 id>'`；可仅给其中一端。
 - 开篇正文的读取标识为 `@opening`，无标题文章为 `@document`。
 - `prototype.py --profile '<已有配置名>'` 全程使用同一配置；演示脚本用默认用户配置。
+
+## 仅重跑第四工具
+
+```bash
+python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/structure_demo.py
+python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
+```
+
+第一条读取最新线上文章，生成新的临时演示与证据；不会覆盖仓库里的旧演示。第二条仅运行离线语义检查。`--base` 可指定已有自包含 HTML，`--output` 可指定本次输出目录。源标题或修订变化导致样本断言失败时，应重新核对，不能改成模拟成功。
+
+第四工具返回 `article`、`revision` 和 `sections`；每项仅包含 `title`、`read_unit`、`kind`、`children`。普通章节 kind 为 `section`；开篇和无标题全文为 `reading_unit`，对应标识分别是 `@opening`、`@document`，不是飞书 block_id。内部块位置、标题等级及祖先数组仅保存在诊断。
+
+默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。深度边界处空 children 只表示本次未展开，不能据此断言原文没有子章。叶子章节、开篇及无标题单位的局部查询返回空 sections，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
+
+当前每次结构查询仍先读取完整 XML，再构造指定范围；浅层或局部返回较短不代表没有全文预读。原生 outline 能返回标题，但不提供开篇正文信息；本轮没有证明它能完整替代。容器标题与三层跳级仅通过构造数据检查，未作真实扩样。第五工具未在本轮推进。
 
 ## 文件与数据
 
@@ -52,7 +67,10 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/prototype.py read
 - `verify_progressive.py`：不联网核对渐进续查、缓存期限、月初迁入与原摘要行为。
 - `demo.py`：真实场景重放、样本核对及自包含结果页生成。
 - `demo_template.html`：展示模板，按五个工具组织场景、结果卡片、调用时间线和核对结论；生成的 demo.html 仍是无需额外文件的独立回放。
-- `demo.html`：本次已执行的回放；知识库检索、摘要与全文检索展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。另两个工具仍展示精简结果，不内嵌文章全文或评论。
+- `demo.html`：本次已执行的回放；知识库检索、摘要与全文检索展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树，正文读取仍展示精简结果，不内嵌文章全文或评论。
+- `structure_demo.py`：仅重跑第四工具的八个真实场景和原生能力对照；从已有 demo.html 复用其他工具的完整证据与原计时。
+- `verify_structure.py`：离线核对层数、局部范围、特殊单位、容器标题排除、参数与精简返回。
+- `structure-capability-check.json`：原生目录深度和局部 section 的本轮真实对照；不将两篇样本等同全库保证。
 - `verify_fulltext.py`：离线核对章节合并、乱序恢复、无关分支省略、开篇/无标题读取单位、无命中仅一次请求、修订一致性及业务输出。
 - `fulltext-capability-check.json`：本轮目录与浅层读取探索的参数、真实耗时及结果尺寸；不是正式接口或全库能力保证。
 - `observed-checks.json`：本次机器可读核对结果，不替代 Linear 中的解释和限制。

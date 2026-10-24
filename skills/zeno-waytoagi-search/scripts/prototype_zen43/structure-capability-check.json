@@ -1,0 +1,217 @@
+{
+  "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+  "revision": 71,
+  "observations": [
+    {
+      "scope": "outline",
+      "max_depth": 1,
+      "heading_ids": [
+        "doxcn61FCMZD7yST7ejMVqN0iHe",
+        "doxcngkdwENUaPhSyjkQGe4hfcb",
+        "doxcnUBRgY8iAzohvfiHfhca6de",
+        "doxcnEffK1NrDDlgW4GNNI02HXf",
+        "doxcnjZzNHVJkltaZjwY8E2UStf",
+        "doxcnrfmssEtcglyPR2rM2cjlcb",
+        "doxcnHtsAMvWZJoRJs8zONjqYle",
+        "doxcnB28WMXvszM2WlA8pG8TOSd",
+        "doxcnagTFQNDp2kPquhOcKBzC4b",
+        "doxcnmJKafU9Eib6gxgiySzXGth"
+      ],
+      "content_chars": 594
+    },
+    {
+      "scope": "outline",
+      "max_depth": 2,
+      "heading_ids": [
+        "doxcn61FCMZD7yST7ejMVqN0iHe",
+        "doxcngkdwENUaPhSyjkQGe4hfcb",
+        "doxcnUBRgY8iAzohvfiHfhca6de",
+        "doxcnEffK1NrDDlgW4GNNI02HXf",
+        "doxcnjZzNHVJkltaZjwY8E2UStf",
+        "doxcnrfmssEtcglyPR2rM2cjlcb",
+        "doxcnHtsAMvWZJoRJs8zONjqYle",
+        "doxcnB28WMXvszM2WlA8pG8TOSd",
+        "doxcnagTFQNDp2kPquhOcKBzC4b",
+        "doxcnmJKafU9Eib6gxgiySzXGth"
+      ],
+      "content_chars": 594
+    },
+    {
+      "scope": "outline",
+      "max_depth": 3,
+      "heading_ids": [
+        "doxcn61FCMZD7yST7ejMVqN0iHe",
+        "doxcngkdwENUaPhSyjkQGe4hfcb",
+        "doxcnUBRgY8iAzohvfiHfhca6de",
+        "doxcnEffK1NrDDlgW4GNNI02HXf",
+        "doxcnjZzNHVJkltaZjwY8E2UStf",
+        "doxcnrfmssEtcglyPR2rM2cjlcb",
+        "doxcnUVnD2RsbnIBVlqbUP7Nleg",
+        "doxcnT1zVZKgY66BtLrEm5yzHsg",
+        "doxcnr1XZzR09cfw9VoLXDrkX9d",
+        "doxcnnUh7VrawovgcLjBaWJ43Ef",
+        "doxcndfpLHLbvGNvBhrSpkCvCYg",
+        "doxcnHtsAMvWZJoRJs8zONjqYle",
+        "doxcnB28WMXvszM2WlA8pG8TOSd",
+        "doxcnKKlZ1Jc1C7rHtHogpRwR2f",
+        "doxcnagTFQNDp2kPquhOcKBzC4b",
+        "doxcnmJKafU9Eib6gxgiySzXGth",
+        "doxcnBGzFjafgXiTPB5CI694ERc",
+        "doxcnvY0P2DaBPEOPrIepgqRGFc"
+      ],
+      "content_chars": 1062
+    },
+    {
+      "scope": "section",
+      "start_block_id": "doxcnmJKafU9Eib6gxgiySzXGth",
+      "heading_ids": [
+        "doxcnmJKafU9Eib6gxgiySzXGth",
+        "doxcnBGzFjafgXiTPB5CI694ERc",
+        "doxcnvY0P2DaBPEOPrIepgqRGFc"
+      ],
+      "top_level_blocks": 23
+    },
+    {
+      "scope": "outline",
+      "article": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+      "revision": 7,
+      "content": "<fragment mode=\"outline\"><outline></outline></fragment>"
+    }
+  ],
+  "calls": [
+    {
+      "arguments": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "--scope",
+        "outline",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "1",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.568,
+      "elapsed_seconds": 0.569,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-001.json",
+      "revision": 71,
+      "content_chars": 594,
+      "comments_removed": 0
+    },
+    {
+      "arguments": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "--scope",
+        "outline",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "2",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.487,
+      "elapsed_seconds": 1.058,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-002.json",
+      "revision": 71,
+      "content_chars": 594,
+      "comments_removed": 0
+    },
+    {
+      "arguments": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "--scope",
+        "outline",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "3",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.499,
+      "elapsed_seconds": 1.56,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-003.json",
+      "revision": 71,
+      "content_chars": 1062,
+      "comments_removed": 0
+    },
+    {
+      "arguments": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+        "--scope",
+        "section",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "-1",
+        "--start-block-id",
+        "doxcnmJKafU9Eib6gxgiySzXGth",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.598,
+      "elapsed_seconds": 2.159,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-004.json",
+      "revision": 71,
+      "content_chars": 2682,
+      "comments_removed": 0
+    },
+    {
+      "arguments": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+        "--scope",
+        "outline",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "-1",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 0.522,
+      "elapsed_seconds": 2.682,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-005.json",
+      "revision": 7,
+      "content_chars": 55,
+      "comments_removed": 0
+    }
+  ],
+  "limits": "两篇真实文章；容器内标题与 H2→H4→H6 仅离线构造验证。outline 不含开篇正文信息；未证明可替代 full。",
+  "observed_at": "2026-10-24T22:01:04+08:00"
+}
