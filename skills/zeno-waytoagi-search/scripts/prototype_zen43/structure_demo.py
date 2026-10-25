@@ -80,48 +80,48 @@ def run_demo(output, base):
     scenarios.append(deep)
     assert default["output"]["revision"] == deep["output"]["revision"]
     units = context.diagnostics["structure_units"]
-    assert [n["read_unit"] for n in default["output"]["sections"]] == [u["id"] for u in units if u["depth"] == 1]
-    assert [n["read_unit"] for n in section_nodes(deep["output"]["sections"])] == [u["id"] for u in units if u["depth"] <= 2]
+    assert [n["unit_id"] for n in default["output"]["outline"]] == [u["id"] for u in units if u["depth"] == 1]
+    assert [n["unit_id"] for n in section_nodes(deep["output"]["outline"])] == [u["id"] for u in units if u["depth"] <= 2]
     parent = next(u for u in units if u["title"] == "动手安装吧")
     children = [u for u in units if parent["id"] in u["parents"]]
     assert len(children) == 2 and all(u["rank"] == 3 and u["depth"] == 2 for u in children)
     for name, depth in [(NAMES[2], None), (NAMES[3], 2)]:
-        arguments = {"article": SAMPLE, "section": parent["id"]}
+        arguments = {"article": SAMPLE, "parent_id": parent["id"]}
         if depth is not None:
             arguments["depth"] = depth
         scenario, _ = capture(output, name, "从“动手安装吧”向下看；不重复父章，也不包含其他兄弟章。本样本的两节安装说明没有更深子标题，因此展开一层和两层相同。", **arguments)
         assert scenario["output"]["revision"] == deep["output"]["revision"]
-        assert [n["read_unit"] for n in section_nodes(scenario["output"]["sections"])] == [u["id"] for u in children]
+        assert [n["unit_id"] for n in section_nodes(scenario["output"]["outline"])] == [u["id"] for u in children]
         scenarios.append(scenario)
     for name, section, explanation in [
         (NAMES[4], children[0]["id"], "安装 MarkItDown 没有子标题，返回空目录；这不表示本章没有正文。"),
         (NAMES[5], "@opening", "开篇正文是可读取单位，但不是原文标题，也没有下级章节。"),
     ]:
-        scenario, _ = capture(output, name, explanation, article=SAMPLE, section=section)
-        assert scenario["output"]["sections"] == []
+        scenario, _ = capture(output, name, explanation, article=SAMPLE, parent_id=section)
+        assert scenario["output"]["outline"] == []
         assert scenario["output"]["revision"] == deep["output"]["revision"]
         scenarios.append(scenario)
     no_headings, _ = capture(output, NAMES[6], "真实文章“云舒：和 AI 鸡同鸭讲…”没有章节标题，整体用 @document 表示，不把加粗文字冒充目录。", article=NO_HEADINGS)
-    assert [n["read_unit"] for n in no_headings["output"]["sections"]] == ["@document"]
+    assert [n["unit_id"] for n in no_headings["output"]["outline"]] == ["@document"]
     scenarios.append(no_headings)
-    empty, _ = capture(output, NAMES[7], "指定 @document 后没有下级标题；可用同一标识读取整篇无标题正文。", article=NO_HEADINGS, section="@document")
-    assert empty["output"]["sections"] == [] and empty["output"]["revision"] == no_headings["output"]["revision"]
+    empty, _ = capture(output, NAMES[7], "指定 @document 后没有下级标题；可用同一标识读取整篇无标题正文。", article=NO_HEADINGS, parent_id="@document")
+    assert empty["output"]["outline"] == [] and empty["output"]["revision"] == no_headings["output"]["revision"]
     scenarios.append(empty)
     # 直接复用上轮已确认全文检索返回的父章与叶子标识，核对两工具衔接；不改第三工具证据。
     located = next(s for s in evidence["scenarios"] if s["name"] == "仅局部正文命中")["output"]
     assert located["revision"] == deep["output"]["revision"]
-    assert [n["read_unit"] for n in section_nodes(located["sections"])] == [parent["id"], children[0]["id"]]
+    assert [n["unit_id"] for n in section_nodes(located["match_tree"])] == [parent["id"], children[0]["id"]]
     for scenario in scenarios:
         assert len(scenario["native"]) == 1
         assert scenario["native"][0]["elapsed_seconds"] <= scenario["total_seconds"]
         complete_units = scenario["diagnostics"]["structure_units"]
         parent_ids = {u["parents"][-1] for u in complete_units if u["parents"]}
-        selected = scenario["input"].get("section")
-        expected_parent = {"read_unit": selected, "has_children": selected in parent_ids} if selected else None
+        selected = scenario["input"].get("parent_id")
+        expected_parent = {"unit_id": selected, "has_children": selected in parent_ids} if selected else None
         assert scenario["output"]["parent"] == expected_parent
-        for node in section_nodes(scenario["output"]["sections"]):
-            assert node["has_children"] == (node["read_unit"] in parent_ids)
-            assert set(node) == {"title", "read_unit", "kind", "has_children", "children"}
+        for node in section_nodes(scenario["output"]["outline"]):
+            assert node["has_children"] == (node["unit_id"] in parent_ids)
+            assert set(node) == {"title", "unit_id", "kind", "has_children", "children"}
     capability = check_native_scopes(output, units, parent, deep["output"]["revision"])
     capability["observed_at"] = scenarios[-1]["recorded_at"]
     write_json(output / "structure-capability-check.json", capability)
@@ -129,8 +129,8 @@ def run_demo(output, base):
     checks.update({"章节层级": "整篇默认 11 个外层单位；两层 19 个单位，H1 → H3 按父子两层处理",
                    "结构局部范围": "动手安装吧仅返回两个子章；不重复基节点、不含兄弟章；叶子下钻为空",
                    "结构特殊单位": "PDF 开篇为 @opening；真实无标题文章为 @document；特殊单位下无子标题",
-                   "结构读取衔接": "沿用上轮全文检索的父章与子章 read_unit，分别取得局部目录和叶子空目录；本轮未执行第五工具",
-                   "结构返回字段": "节点含 title、read_unit、kind、has_children、children；内部位置留在诊断，整体重命名尚未确认",
+                   "结构读取衔接": "沿用上轮全文检索的父章与子章 unit_id，分别取得局部目录和叶子空目录；本轮未执行第五工具",
+                   "结构返回字段": "节点含 title、unit_id、kind、has_children、children；内部位置留在诊断；类型为 section/opening/document",
                    "结构子章标识": "根据完整原文判断；默认一层的父章标有子章但未展开，两层的真实叶子标无子章",
                    "结构查询起点": "整篇 parent=null；局部 parent 单独返回读取标识与有无子章，不占展开层数",
                    "结构验证时间": scenarios[-1]["recorded_at"]})

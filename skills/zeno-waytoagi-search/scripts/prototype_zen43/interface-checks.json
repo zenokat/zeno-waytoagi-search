@@ -1,0 +1,131 @@
+{
+  "recorded_at": "2026-10-25T10:50:38+08:00",
+  "comparisons": [
+    {
+      "name": "篇章结构获取",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "全文检索",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "单词 MarkItDown",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "单词 MinerU",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "仅命中标题",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "仅局部正文命中",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "表格单行命中",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "全文检索无命中",
+      "method": "locate",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "正文读取",
+      "method": "read",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 4
+    },
+    {
+      "name": "完整章节范围",
+      "method": "read",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 1
+    },
+    {
+      "name": "全文读取",
+      "method": "read",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 11
+    },
+    {
+      "name": "整篇默认一层",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "局部默认一层",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "局部展开两层",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "叶子章节结构",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "开篇正文结构",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "无标题文章结构",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    },
+    {
+      "name": "无标题单位下钻",
+      "method": "structure",
+      "renamed_result_equal": true,
+      "native_arguments_equal_except_output_path": true,
+      "images_sha256_equal": 0
+    }
+  ]
+}

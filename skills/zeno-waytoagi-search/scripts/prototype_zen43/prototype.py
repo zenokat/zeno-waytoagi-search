@@ -98,7 +98,7 @@ def section_model(content):
     first = units[0]["start"] if units else len(blocks)
     if first:
         units.insert(0, {"id": "@opening" if units else "@document", "title": "开篇正文" if units else "全文（无标题）",
-                         "depth": 1, "parents": [], "start": 0, "end": first, "kind": "reading_unit"})
+                         "depth": 1, "parents": [], "start": 0, "end": first, "kind": "opening" if units else "document"})
     return blocks, units, positions
 
 
@@ -122,7 +122,7 @@ def matched_section_tree(units, positions, hits):
     for unit in units:
         if unit["id"] not in retained:
             continue
-        node = {"read_unit": unit["id"], "title": unit["title"],
+        node = {"unit_id": unit["id"], "title": unit["title"],
                 "hits": grouped.get(unit["id"], []), "children": []}
         nodes[unit["id"]] = node
         target = nodes[unit["parents"][-1]]["children"] if unit["parents"] else roots
@@ -283,40 +283,40 @@ class Prototype:
         from summary_reader import summaries
         return summaries(self, articles)
 
-    def structure(self, article, section=None, depth=1):
-        """获取 article 在 section 下 depth 层标题树；返回目录节点及查询起点 parent。
+    def structure(self, article, parent_id=None, depth=1):
+        """获取 article 在 parent_id 下 depth 层标题树；返回目录节点及查询起点 parent。
 
-        section 缺省从文章外层开始；指定时不重复基节点，depth=1 只列直接子层。
-        普通 read_unit 是原生标题块 ID；@opening/@document 是工具定义的特殊读取单位。
+        parent_id 缺省从文章外层开始；指定时不重复基节点，depth=1 只列直接子层。
+        普通 unit_id 是原生标题块 ID；@opening/@document 是工具定义的特殊读取单位。
         has_children 根据原文完整结构判断，不受 depth 裁剪影响；整篇查询的 parent 为 None。
         """
         if type(depth) is not int or depth < 1:
             raise ValueError("展开深度须为正整数")
         document = self.fetch(article)
         _, units, _ = section_model(document["content"])
-        base = next((u for u in units if u["id"] == section), None) if section else None
-        if section and not base:
+        base = next((u for u in units if u["id"] == parent_id), None) if parent_id else None
+        if parent_id and not base:
             raise ValueError("不是可选的顶层章节")
         # 在深度裁剪之前收集有直接子章的单位，避免把未展开误标为已到底。
         parents_with_children = {u["parents"][-1] for u in units if u["parents"]}
-        visible = [u for u in units if (section in u["parents"] and u["depth"] <= base["depth"] + depth)] if base else [u for u in units if u["depth"] <= depth]
+        visible = [u for u in units if (parent_id in u["parents"] and u["depth"] <= base["depth"] + depth)] if base else [u for u in units if u["depth"] <= depth]
         roots, nodes = [], {}
         # 原文顺序保证父章先出现；局部查询的基节点不在 nodes，其直接子章成为返回树根。
         for unit in visible:
-            node = {"title": unit["title"], "read_unit": unit["id"], "kind": unit["kind"],
+            node = {"title": unit["title"], "unit_id": unit["id"], "kind": unit["kind"],
                     "has_children": unit["id"] in parents_with_children, "children": []}
             nodes[unit["id"]] = node
             parent = nodes.get(unit["parents"][-1]) if unit["parents"] else None
             (parent["children"] if parent else roots).append(node)
         self.diagnostics["structure_units"] = units
-        query_parent = {"read_unit": base["id"], "has_children": base["id"] in parents_with_children} if base else None
-        return {"article": article, "revision": document["revision_id"], "parent": query_parent, "sections": roots}
+        query_parent = {"unit_id": base["id"], "has_children": base["id"] in parents_with_children} if base else None
+        return {"article": article, "revision": document["revision_id"], "parent": query_parent, "outline": roots}
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""
         hits = self.fetch(article, "keyword", keyword="|".join(keywords), context_before=0, context_after=0)
         root = xml_root(hits["content"])
-        result = {"article": article, "revision": hits["revision_id"], "keywords": keywords, "sections": []}
+        result = {"article": article, "revision": hits["revision_id"], "keywords": keywords, "match_tree": []}
         # 原生明确返回空内容时没有待补的位置；不为无命中查询再读取全文。
         if not hits["content"].strip() or not len(root):
             return result
@@ -341,20 +341,20 @@ class Prototype:
             if index is None:
                 raise ValueError("命中块无法映射到当前全文，不猜位置")
             output.append({"block_id": block_id, "snippet_xml": content, "container_expanded": bool(container_id)})
-        result["sections"] = matched_section_tree(units, positions, output)
+        result["match_tree"] = matched_section_tree(units, positions, output)
         return result
 
-    def read(self, article, sections=None, start=None, end=None):
+    def read(self, article, unit_ids=None, start_unit_id=None, end_unit_id=None):
         """读取 article 全文/多章/完整章节范围；返回 Markdown 绝对路径、实际选区和本地图片信息。"""
-        if sections and (start or end):
+        if unit_ids and (start_unit_id or end_unit_id):
             raise ValueError("章节列表与范围不能同时指定")
         full = self.fetch(article)
         blocks, units, _ = section_model(full["content"])
         by_id = {unit["id"]: unit for unit in units}
-        if sections:
-            intervals = [(by_id[key]["start"], by_id[key]["end"]) for key in sections]
-        elif start or end:
-            intervals = [(by_id[start]["start"] if start else 0, by_id[end]["end"] if end else len(blocks))]
+        if unit_ids:
+            intervals = [(by_id[key]["start"], by_id[key]["end"]) for key in unit_ids]
+        elif start_unit_id or end_unit_id:
+            intervals = [(by_id[start_unit_id]["start"] if start_unit_id else 0, by_id[end_unit_id]["end"] if end_unit_id else len(blocks))]
         else:
             intervals = [(0, len(blocks))]
         merged = []
@@ -372,7 +372,7 @@ class Prototype:
             first, last = blocks[left].get("id"), blocks[right - 1].get("id")
             if not first or not last:
                 raise ValueError("选区端点缺少块标识")
-            if not sections and not start and not end:
+            if not unit_ids and not start_unit_id and not end_unit_id:
                 body = self.fetch(article, "full", format="markdown")
             else:
                 body = self.fetch(article, "range", format="markdown", start_block_id=first, end_block_id=last)
@@ -398,12 +398,12 @@ class Prototype:
                         content = content.replace("https://feishu.cn/file/" + token, "图片获取失败:" + token)
             markdown.append(content)
             ranges.append({"start_block_id": first, "end_block_id": last, "top_level_blocks": right - left,
-                           "units": [u["id"] for u in units if left <= u["start"] < right]})
+                           "unit_ids": [u["id"] for u in units if left <= u["start"] < right]})
         path = folder / "body.md"
         path.write_text("\n\n".join(markdown), encoding="utf-8")
         return {"article": article, "revision": full["revision_id"], "markdown_path": str(path),
                 "actual_ranges": ranges, "images": images, "warnings": warnings,
-                "scope": "full" if not sections and not start and not end else "selected_sections"}
+                "scope": "full" if not unit_ids and not start_unit_id and not end_unit_id else "selected_sections"}
 
 
 def main():
@@ -417,10 +417,10 @@ def main():
     parser.add_argument("--until")
     parser.add_argument("--cursor")
     parser.add_argument("--keywords", nargs="+", default=["MarkItDown", "MinerU"])
-    parser.add_argument("--section")
-    parser.add_argument("--sections", nargs="+")
-    parser.add_argument("--start")
-    parser.add_argument("--end")
+    parser.add_argument("--parent-id")
+    parser.add_argument("--unit-ids", nargs="+")
+    parser.add_argument("--start-unit-id")
+    parser.add_argument("--end-unit-id")
     parser.add_argument("--depth", type=int, default=1)
     parser.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "zen43-PROTOTYPE-wipe-me"))
     parser.add_argument("--profile")
@@ -432,11 +432,11 @@ def main():
         elif args.tool == "summaries":
             result = prototype.summaries(args.articles or [args.article])
         elif args.tool == "structure":
-            result = prototype.structure(args.article, args.section, args.depth)
+            result = prototype.structure(args.article, args.parent_id, args.depth)
         elif args.tool == "locate":
             result = prototype.locate(args.article, args.keywords)
         else:
-            result = prototype.read(args.article, args.sections, args.start, args.end)
+            result = prototype.read(args.article, args.unit_ids, args.start_unit_id, args.end_unit_id)
         write_json(prototype.run_dir / "calls.json", prototype.calls)
         write_json(prototype.run_dir / "diagnostics.json", prototype.diagnostics)
         # 已迭代的四个入口直接交付业务 JSON，诊断留本地，避免占用 Agent 阅读预算。

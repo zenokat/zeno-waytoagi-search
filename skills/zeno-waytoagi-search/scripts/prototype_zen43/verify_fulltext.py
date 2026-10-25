@@ -37,21 +37,21 @@ class FulltextChecks(unittest.TestCase):
                                        "revision_id": 1 if scope == "keyword" else self.revision}}}
 
     def test_empty_result_needs_only_keyword(self):
-        """无命中时仅查关键词，不为不存在的命中读取全文；返回空 sections。"""
+        """无命中时仅查关键词，不为不存在的命中读取全文；返回空 match_tree。"""
         self.keyword = ""
         result = Prototype(self.folder.name).locate("article", ["不存在"])
-        self.assertEqual(result["sections"], [])
+        self.assertEqual(result["match_tree"], [])
         self.assertEqual(self.scopes, ["keyword"])
 
-    def test_opening_and_heading_keep_read_units(self):
+    def test_opening_and_heading_keep_unit_ids(self):
         """开篇映射到开篇单位；跳级标题保留父子链，标题片段不附送正文。"""
         result = Prototype(self.folder.name).locate("article", ["关键词"])
-        self.assertEqual(result["sections"][0]["read_unit"], "@opening")
-        parent = result["sections"][1]
-        self.assertEqual(parent["read_unit"], "parent")
+        self.assertEqual(result["match_tree"][0]["unit_id"], "@opening")
+        parent = result["match_tree"][1]
+        self.assertEqual(parent["unit_id"], "parent")
         self.assertEqual(parent["hits"], [])
         child = parent["children"][0]
-        self.assertEqual(child["read_unit"], "child")
+        self.assertEqual(child["unit_id"], "child")
         self.assertNotIn("正文", child["hits"][0]["snippet_xml"])
 
     def test_grouped_snapshot_sorts_and_prunes(self):
@@ -63,10 +63,10 @@ class FulltextChecks(unittest.TestCase):
                      '<h1 id="other">无关章</h1>')
         self.keyword = '<fragment><p id="c1">第三节命中</p><p id="a2">晚片段</p><p id="intro">父章命中</p><p id="a1">早片段</p></fragment>'
         result = Prototype(self.folder.name).locate("article", ["关键词"])
-        self.assertEqual(len(result["sections"]), 1)
-        parent = result["sections"][0]
+        self.assertEqual(len(result["match_tree"]), 1)
+        parent = result["match_tree"][0]
         self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in parent["hits"]], ["intro"])
-        self.assertEqual([s["read_unit"] for s in parent["children"]], ["a", "c"])
+        self.assertEqual([s["unit_id"] for s in parent["children"]], ["a", "c"])
         self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in parent["children"][0]["hits"]], ["a1", "a2"])
         self.assertNotIn("section_chain", json.dumps(result))
 
@@ -75,9 +75,9 @@ class FulltextChecks(unittest.TestCase):
         self.full = '<p id="first">前文</p><p id="last">后文</p>'
         self.keyword = '<fragment><p id="last">后文</p><p id="first">前文</p></fragment>'
         result = Prototype(self.folder.name).locate("article", ["文"])
-        self.assertEqual(len(result["sections"]), 1)
-        section = result["sections"][0]
-        self.assertEqual(section["read_unit"], "@document")
+        self.assertEqual(len(result["match_tree"]), 1)
+        section = result["match_tree"][0]
+        self.assertEqual(section["unit_id"], "@document")
         self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in section["hits"]], ["first", "last"])
 
     def test_changed_revision_is_rejected(self):
@@ -98,14 +98,14 @@ class FulltextChecks(unittest.TestCase):
             status = main()
         result = json.loads(output.getvalue())
         self.assertEqual(status, 0)
-        self.assertIn("sections", result)
+        self.assertIn("match_tree", result)
         self.assertNotIn("evidence_dir", result)
         self.assertNotIn("structure_scope", result)
         self.assertNotIn("completeness", result)
-        for node in section_nodes(result["sections"]):
+        for node in section_nodes(result["match_tree"]):
             for hit in node["hits"]:
                 self.assertNotIn("block_id", hit)
-        self.assertIn("snippet_xml", result["sections"][0]["hits"][0])
+        self.assertIn("snippet_xml", result["match_tree"][0]["hits"][0])
 
 
 if __name__ == "__main__":
