@@ -65,6 +65,7 @@ class StructureChecks(unittest.TestCase):
         result = Prototype(self.folder.name).structure("article")
         self.assertEqual([u["unit_id"] for u in section_nodes(result["outline"])], ["@document"])
         self.assertEqual(result["outline"][0]["kind"], "document")
+        self.assertNotIn("title", result["outline"][0])
         self.assertEqual(Prototype(self.folder.name).structure("article", "@document")["outline"], [])
 
     def test_container_heading_is_not_selectable(self):
@@ -78,9 +79,11 @@ class StructureChecks(unittest.TestCase):
         parent = result["outline"][1]
         self.assertEqual(parent["children"][0]["children"][0]["unit_id"], "leaf")
         for node in section_nodes(result["outline"]):
-            self.assertEqual(set(node), {"title", "unit_id", "kind", "has_children", "children"})
+            fields = {"unit_id", "kind", "has_children", "children"}
+            self.assertEqual(set(node), fields | ({"title"} if node["kind"] == "section" else set()))
         self.assertEqual(result["outline"][0]["kind"], "opening")
         self.assertEqual(parent["kind"], "section")
+        self.assertEqual(parent["title"], "父章")
 
     def test_cli_returns_exact_business_json(self):
         """命令行直接交付业务树，证据目录只保存在内部；无参数或返回值。"""

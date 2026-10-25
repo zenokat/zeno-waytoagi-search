@@ -82,7 +82,7 @@ def run_demo(output, base):
     units = context.diagnostics["structure_units"]
     assert [n["unit_id"] for n in default["output"]["outline"]] == [u["id"] for u in units if u["depth"] == 1]
     assert [n["unit_id"] for n in section_nodes(deep["output"]["outline"])] == [u["id"] for u in units if u["depth"] <= 2]
-    parent = next(u for u in units if u["title"] == "动手安装吧")
+    parent = next(u for u in units if u.get("title") == "动手安装吧")
     children = [u for u in units if parent["id"] in u["parents"]]
     assert len(children) == 2 and all(u["rank"] == 3 and u["depth"] == 2 for u in children)
     for name, depth in [(NAMES[2], None), (NAMES[3], 2)]:
@@ -121,7 +121,8 @@ def run_demo(output, base):
         assert scenario["output"]["parent"] == expected_parent
         for node in section_nodes(scenario["output"]["outline"]):
             assert node["has_children"] == (node["unit_id"] in parent_ids)
-            assert set(node) == {"title", "unit_id", "kind", "has_children", "children"}
+            fields = {"unit_id", "kind", "has_children", "children"}
+            assert set(node) == fields | ({"title"} if node["kind"] == "section" else set())
     capability = check_native_scopes(output, units, parent, deep["output"]["revision"])
     capability["observed_at"] = scenarios[-1]["recorded_at"]
     write_json(output / "structure-capability-check.json", capability)
@@ -130,7 +131,7 @@ def run_demo(output, base):
                    "结构局部范围": "动手安装吧仅返回两个子章；不重复基节点、不含兄弟章；叶子下钻为空",
                    "结构特殊单位": "PDF 开篇为 @opening；真实无标题文章为 @document；特殊单位下无子标题",
                    "结构读取衔接": "沿用上轮全文检索的父章与子章 unit_id，分别取得局部目录和叶子空目录；本轮未执行第五工具",
-                   "结构返回字段": "节点含 title、unit_id、kind、has_children、children；内部位置留在诊断；类型为 section/opening/document",
+                   "结构返回字段": "节点含 unit_id、kind、has_children、children；仅原文章节含 title，opening/document 省略 title；内部位置留在诊断",
                    "结构子章标识": "根据完整原文判断；默认一层的父章标有子章但未展开，两层的真实叶子标无子章",
                    "结构查询起点": "整篇 parent=null；局部 parent 单独返回读取标识与有无子章，不占展开层数",
                    "结构验证时间": scenarios[-1]["recorded_at"]})

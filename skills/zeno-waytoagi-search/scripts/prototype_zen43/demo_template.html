@@ -105,7 +105,9 @@ function renderMatchedSections(parent,sections,article){
   sections.forEach(section=>{
     const card=appendText(parent,'section','','match-node');
     const title=appendText(card,'div','','match-heading'+(section.hits.length?' is-hit':''));
-    appendText(title,'h3',section.title);appendText(title,'span',section.hits.length?'直接命中 '+section.hits.length+' 处':'祖先章节','small');
+    if('title' in section)appendText(title,'h3',section.title);
+    else appendText(title,'span',section.unit_id==='@opening'?'开篇正文 · 非原文标题':'无标题全文 · 非原文标题','small');
+    appendText(title,'span',section.hits.length?'直接命中 '+section.hits.length+' 处':'祖先章节','small');
     const locator=appendText(card,'details','','hit-location');appendText(locator,'summary','后续读取位置');appendText(locator,'pre',JSON.stringify({article,unit_id:section.unit_id},null,2));
     if(section.hits.length){
       const snippets=appendText(card,'details','','chapter-hits');appendText(snippets,'summary','查看本章 '+section.hits.length+' 处命中片段');
@@ -122,7 +124,7 @@ function renderMatchedSections(parent,sections,article){
 function renderStructureSections(parent,sections,article){
   sections.forEach(section=>{
     const card=appendText(parent,'section','','structure-node');
-    const title=appendText(card,'div','','match-heading');appendText(title,'h3',section.title);
+    const title=appendText(card,'div','','match-heading');if('title' in section)appendText(title,'h3',section.title);
     appendText(title,'span',section.kind==='section'?'原文章节标题':section.kind==='opening'?'开篇正文 · 非原文标题':'无标题全文 · 非原文标题','small');
     appendText(title,'span',section.has_children?(section.children.length?'有子章节 · 本次已展开':'有子章节 · 受深度限制未展开'):'已到底 · 没有子章节','small');
     const locator=appendText(card,'details','','hit-location');appendText(locator,'summary','读取标识与后续调用参数');

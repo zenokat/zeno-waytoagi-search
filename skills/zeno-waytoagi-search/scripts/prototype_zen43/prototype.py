@@ -97,7 +97,8 @@ def section_model(content):
         stack.append(unit)
     first = units[0]["start"] if units else len(blocks)
     if first:
-        units.insert(0, {"id": "@opening" if units else "@document", "title": "开篇正文" if units else "全文（无标题）",
+        # 无标题单位只标类型，不生成可能被误当作原文标题的文字。
+        units.insert(0, {"id": "@opening" if units else "@document",
                          "depth": 1, "parents": [], "start": 0, "end": first, "kind": "opening" if units else "document"})
     return blocks, units, positions
 
@@ -122,8 +123,10 @@ def matched_section_tree(units, positions, hits):
     for unit in units:
         if unit["id"] not in retained:
             continue
-        node = {"unit_id": unit["id"], "title": unit["title"],
+        node = {"unit_id": unit["id"],
                 "hits": grouped.get(unit["id"], []), "children": []}
+        if "title" in unit:
+            node["title"] = unit["title"]
         nodes[unit["id"]] = node
         target = nodes[unit["parents"][-1]]["children"] if unit["parents"] else roots
         target.append(node)
@@ -303,8 +306,10 @@ class Prototype:
         roots, nodes = [], {}
         # 原文顺序保证父章先出现；局部查询的基节点不在 nodes，其直接子章成为返回树根。
         for unit in visible:
-            node = {"title": unit["title"], "unit_id": unit["id"], "kind": unit["kind"],
+            node = {"unit_id": unit["id"], "kind": unit["kind"],
                     "has_children": unit["id"] in parents_with_children, "children": []}
+            if "title" in unit:
+                node["title"] = unit["title"]
             nodes[unit["id"]] = node
             parent = nodes.get(unit["parents"][-1]) if unit["parents"] else None
             (parent["children"] if parent else roots).append(node)

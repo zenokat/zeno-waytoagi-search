@@ -52,7 +52,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 第一条读取最新线上文章，生成新的临时演示与证据；不会覆盖仓库里的旧演示。第二条仅运行离线语义检查。`--base` 可指定已有自包含 HTML，`--output` 可指定本次输出目录。源标题或修订变化导致样本断言失败时，应重新核对，不能改成模拟成功。
 
-第四工具返回 `article`、`revision`、`parent` 和 `outline`；每个目录节点包含 `title`、`unit_id`、`kind`、`has_children`、`children`。普通章节 kind 为 `section`；开篇为 `opening`，无标题全文为 `document`，对应标识分别是 `@opening`、`@document`，不是飞书 block_id。内部块位置、标题等级及祖先数组仅保存在诊断。
+第四工具返回 `article`、`revision`、`parent` 和 `outline`；每个目录节点包含 `unit_id`、`kind`、`has_children`、`children`；只有原文章节包含 `title`，开篇与无标题全文省略该字段，不返回占位标题或 null。普通章节 kind 为 `section`；开篇为 `opening`，无标题全文为 `document`，对应标识分别是 `@opening`、`@document`，不是飞书 block_id。内部块位置、标题等级及祖先数组仅保存在诊断。
 
 默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。`has_children` 在深度裁剪前根据完整结构计算：true 且 children 为空表示本次未展开，false 表示确实无子章节。局部查询的 `parent` 单独返回查询起点的 `unit_id` 与 `has_children`，不占层数；整篇查询为 null。叶子章节、开篇及无标题单位的局部查询返回空 outline 和 parent.has_children=false，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
 
@@ -74,6 +74,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 - `demo.html`：本次已执行的回放；知识库检索、摘要与全文检索展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树，正文读取仍展示精简结果，不内嵌文章全文或评论。
 - `structure_demo.py`：仅重跑第四工具的八个真实场景和原生能力对照；从已有 demo.html 复用其他工具的完整证据与原计时。
 - `verify_interface.py`：离线核对命中标识到目录、正文的衔接及命令行新参数。
+- `untitled-checks.json`：15 个结构与全文检索场景使用已保存真实响应重放，核对仅删除无标题单位的 title；没有新增联网采集，原计时保留。
 - `interface-checks.json`：18 个真实场景的字段映射对比结果；正文及图片内容与改名前保持。
 - `verify_structure.py`：离线核对层数、局部范围、特殊单位、容器标题排除、参数与精简返回。
 - `structure-capability-check.json`：原生目录深度和局部 section 的本轮真实对照；不将两篇样本等同全库保证。
@@ -87,7 +88,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 全文检索先执行 keyword；原生返回空内容时直接交付空命中，不读取全文。有命中时仍读取完整 XML 建立块归属和完整章节链，遇 excerpt 按顶层容器补 range，并核对修订一致。命中标题只交付标题，开篇正文用 `@opening` 衔接后续读取。CLI 成功输出直接返回业务 JSON，内部证据不混入结果。
 
-全文检索业务返回为 `match_tree` 命中章节树，只含命中章节及其祖先，不是全文目录。节点包含 `unit_id`、`title`、`hits` 和 `children`；同章命中放入 `hits` 数组，片段只挂在最具体的所属章节，祖先标题只保留一次。每个片段保留 `snippet_xml` 与 `container_expanded`；独立 `block_id` 仅在内部用于排序和定位，不在业务 JSON 重复返回。原始 XML 内已有的 ID 保持。章节和片段均按全文位置排序，不依赖原生响应顺序。未命中且不是祖先的章节省略；可用节点的 `unit_id` 继续获取指定章节的结构或正文。完全无命中时返回 `match_tree: []`，不附全篇结构；无标题文章的命中合并至 `@document`。后者本轮有离线核对，未增加线上无标题样本。固定范围规则及原生返回上限限制由工具说明表达，不返回 `structure_scope` 或固定声明式 `completeness`；删除声明不代表已证明服务端完整性。
+全文检索业务返回为 `match_tree` 命中章节树，只含命中章节及其祖先，不是全文目录。节点包含 `unit_id`、`hits` 和 `children`；只有原文章节附带 `title`，`@opening` / `@document` 省略该字段；同章命中放入 `hits` 数组，片段只挂在最具体的所属章节，祖先标题只保留一次。每个片段保留 `snippet_xml` 与 `container_expanded`；独立 `block_id` 仅在内部用于排序和定位，不在业务 JSON 重复返回。原始 XML 内已有的 ID 保持。章节和片段均按全文位置排序，不依赖原生响应顺序。未命中且不是祖先的章节省略；可用节点的 `unit_id` 继续获取指定章节的结构或正文。完全无命中时返回 `match_tree: []`，不附全篇结构；无标题文章的命中合并至 `@document`。后者本轮有离线核对，未增加线上无标题样本。固定范围规则及原生返回上限限制由工具说明表达，不返回 `structure_scope` 或固定声明式 `completeness`；删除声明不代表已证明服务端完整性。
 
 本轮实际 outline 只返回标题及 ID，缺少普通命中块与章节的归属；full 的 `max-depth=0` 在 PDF 样本上仍返回与无限深度完全一致的 15,248 字符，不能据参数名宣称已降低预读成本。尚未找到经过验证的轻量替代路径，因此有命中时保留 full。演示显示完整 JSON 的字符数与 UTF-8 字节数，不将字符数当作模型 token 数；完整命中集是否改为文件交付仍待后续决定。
 

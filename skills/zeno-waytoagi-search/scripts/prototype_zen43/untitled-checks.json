@@ -1,0 +1,112 @@
+{
+  "recorded_at": "2026-10-25T11:05:12+08:00",
+  "mode": "saved_native_response_replay",
+  "new_network_requests": 0,
+  "comparisons": [
+    {
+      "name": "篇章结构获取",
+      "method": "structure",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "全文检索",
+      "method": "locate",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "单词 MarkItDown",
+      "method": "locate",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "单词 MinerU",
+      "method": "locate",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "仅命中标题",
+      "method": "locate",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "仅局部正文命中",
+      "method": "locate",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "表格单行命中",
+      "method": "locate",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "全文检索无命中",
+      "method": "locate",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "整篇默认一层",
+      "method": "structure",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "局部默认一层",
+      "method": "structure",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "局部展开两层",
+      "method": "structure",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "叶子章节结构",
+      "method": "structure",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "开篇正文结构",
+      "method": "structure",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "无标题文章结构",
+      "method": "structure",
+      "removed_titles": 1,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    },
+    {
+      "name": "无标题单位下钻",
+      "method": "structure",
+      "removed_titles": 0,
+      "equals_previous_without_untitled_titles": true,
+      "native_arguments_unchanged": true
+    }
+  ]
+}

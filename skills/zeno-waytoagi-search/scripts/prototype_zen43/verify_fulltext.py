@@ -47,7 +47,9 @@ class FulltextChecks(unittest.TestCase):
         """开篇映射到开篇单位；跳级标题保留父子链，标题片段不附送正文。"""
         result = Prototype(self.folder.name).locate("article", ["关键词"])
         self.assertEqual(result["match_tree"][0]["unit_id"], "@opening")
+        self.assertNotIn("title", result["match_tree"][0])
         parent = result["match_tree"][1]
+        self.assertEqual(parent["title"], "父章")
         self.assertEqual(parent["unit_id"], "parent")
         self.assertEqual(parent["hits"], [])
         child = parent["children"][0]
@@ -78,6 +80,7 @@ class FulltextChecks(unittest.TestCase):
         self.assertEqual(len(result["match_tree"]), 1)
         section = result["match_tree"][0]
         self.assertEqual(section["unit_id"], "@document")
+        self.assertNotIn("title", section)
         self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in section["hits"]], ["first", "last"])
 
     def test_changed_revision_is_rejected(self):
