@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-10-25T11:22:34+08:00",
+  "source": "本轮真实只读调用；前四工具完整复用旧证据与计时",
+  "unchanged_other_scenarios": 28,
+  "scenarios": [
+    {
+      "name": "正文读取",
+      "same_revision_as_previous": true,
+      "markdown_matches_native_except_local_image_paths": true,
+      "headings_match_selected_units_in_order": true,
+      "images_match_selected_xml_and_markdown_in_order": true,
+      "same_body_ranges_and_image_bytes_as_previous": true
+    },
+    {
+      "name": "完整章节范围",
+      "same_revision_as_previous": true,
+      "markdown_matches_native_except_local_image_paths": true,
+      "headings_match_selected_units_in_order": true,
+      "images_match_selected_xml_and_markdown_in_order": true,
+      "same_body_ranges_and_image_bytes_as_previous": true
+    },
+    {
+      "name": "全文读取",
+      "same_revision_as_previous": true,
+      "markdown_matches_native_except_local_image_paths": true,
+      "headings_match_selected_units_in_order": true,
+      "images_match_selected_xml_and_markdown_in_order": true,
+      "same_body_ranges_and_image_bytes_as_previous": true
+    }
+  ],
+  "limits": "同一篇真实文章的三个场景；未扩展系统性异常、混杂正文归属或大文档完整性；未做浏览器视觉验收。"
+}

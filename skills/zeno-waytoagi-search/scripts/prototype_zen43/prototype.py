@@ -444,9 +444,8 @@ def main():
             result = prototype.read(args.article, args.unit_ids, args.start_unit_id, args.end_unit_id)
         write_json(prototype.run_dir / "calls.json", prototype.calls)
         write_json(prototype.run_dir / "diagnostics.json", prototype.diagnostics)
-        # 已迭代的四个入口直接交付业务 JSON，诊断留本地，避免占用 Agent 阅读预算。
-        output = result if args.tool in {"search", "summaries", "locate", "structure"} else {"result": result, "evidence_dir": str(prototype.run_dir)}
-        print(json.dumps(output, ensure_ascii=False, indent=2))
+        # 五个入口均直接交付业务 JSON；调用证据和诊断保存在上面的临时文件。
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (ValueError, KeyError, OSError, ET.ParseError) as error:
         write_json(prototype.run_dir / "calls.json", prototype.calls)

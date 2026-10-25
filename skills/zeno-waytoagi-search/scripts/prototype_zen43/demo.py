@@ -1,7 +1,7 @@
 """运行 ZEN-43 真实只读演示与针对性核对，生成可双击的自包含 HTML 结果页。
 
 一个命令运行五工具主要路径。所有断言只核对本次实际样本，不替代 ZEN-44。
-全文和原生证据留在临时目录；审阅页保留检索片段、原摘要及全文检索的完整业务 JSON。
+原生证据与正文文件留在临时目录；审阅页保留完整业务 JSON，并内嵌正文与图片审阅快照。
 """
 
 import argparse
@@ -101,11 +101,15 @@ def run_demo(output):
                            "revision": call["revision"], "seconds": call["seconds"],
                            "elapsed_seconds": call["elapsed_seconds"],
                            "content_chars": call["content_chars"]})
-        scenarios.append({"name": name, "explain": explanation, "input": arguments,
-                          "output": result if method in {"search", "summaries", "locate", "structure"} else compact_result(result),
-                          "exact_output": method in {"search", "summaries", "locate", "structure"}, "diagnostics": p.diagnostics,
+        scenario = {"name": name, "explain": explanation, "input": arguments,
+                          "output": result, "exact_output": True, "diagnostics": p.diagnostics,
                           "native": native, "local_result": result_path,
-                          "total_seconds": total_seconds})
+                          "total_seconds": total_seconds}
+        if method == "read":
+            # 按需载入正文审阅核对，前四工具不读取或内嵌正文文件。
+            from body_demo import review_body
+            scenario["body_review"] = review_body(result, p, arguments)
+        scenarios.append(scenario)
         print(name + "完成", flush=True)
         return result, p
 

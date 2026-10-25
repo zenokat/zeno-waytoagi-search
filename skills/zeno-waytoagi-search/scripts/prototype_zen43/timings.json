@@ -1,8 +1,8 @@
 {
   "recorded_at": "2026-10-24T21:20:08+08:00",
-  "interface_recorded_at": "2026-10-25T10:50:38+08:00",
+  "body_recorded_at": "2026-10-25T11:22:34+08:00",
   "unit": "seconds",
-  "definition": "第三至五工具共18场景本轮重新联网；前两工具13场景沿用原采集。各场景从输入独立计时。",
+  "definition": "仅第五工具本轮重新联网；前四工具的采集、重放说明与计时保持。各场景独立计时。",
   "scenarios": [
     {
       "name": "知识库检索",
@@ -1517,7 +1517,7 @@
           "doxcnUVnD2RsbnIBVlqbUP7Nleg"
         ]
       },
-      "total_seconds": 5.493,
+      "total_seconds": 5.353,
       "commands": [
         {
           "command": [
@@ -1540,8 +1540,8 @@
           ],
           "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
           "revision": 71,
-          "seconds": 0.591,
-          "elapsed_seconds": 0.592,
+          "seconds": 0.677,
+          "elapsed_seconds": 0.678,
           "content_chars": 15248
         },
         {
@@ -1569,8 +1569,8 @@
           ],
           "purpose": "读取计算后的完整章节区间，取得 Markdown 正文。",
           "revision": 71,
-          "seconds": 0.511,
-          "elapsed_seconds": 1.106,
+          "seconds": 0.562,
+          "elapsed_seconds": 1.246,
           "content_chars": 2769
         },
         {
@@ -1580,7 +1580,7 @@
             "--token",
             "FgFnb4LZYoyeiwxWPy6cRrrenRf",
             "--output",
-            "/private/tmp/zen43-body-8nagjkst/FgFnb4LZYoyeiwxWPy6cRrrenRf",
+            "/private/tmp/zen43-body-rij_5eki/FgFnb4LZYoyeiwxWPy6cRrrenRf",
             "--as",
             "user",
             "--format",
@@ -1588,8 +1588,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.023,
-          "elapsed_seconds": 2.13,
+          "seconds": 1.027,
+          "elapsed_seconds": 2.274,
           "content_chars": 0
         },
         {
@@ -1599,7 +1599,7 @@
             "--token",
             "CEMjbJM4goj50exy0RVcQD3In6f",
             "--output",
-            "/private/tmp/zen43-body-8nagjkst/CEMjbJM4goj50exy0RVcQD3In6f",
+            "/private/tmp/zen43-body-rij_5eki/CEMjbJM4goj50exy0RVcQD3In6f",
             "--as",
             "user",
             "--format",
@@ -1607,8 +1607,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.121,
-          "elapsed_seconds": 3.253,
+          "seconds": 1.068,
+          "elapsed_seconds": 3.344,
           "content_chars": 0
         },
         {
@@ -1618,7 +1618,7 @@
             "--token",
             "QztFbvbvPoDWJOxt9tXc469inid",
             "--output",
-            "/private/tmp/zen43-body-8nagjkst/QztFbvbvPoDWJOxt9tXc469inid",
+            "/private/tmp/zen43-body-rij_5eki/QztFbvbvPoDWJOxt9tXc469inid",
             "--as",
             "user",
             "--format",
@@ -1626,8 +1626,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.143,
-          "elapsed_seconds": 4.397,
+          "seconds": 1.002,
+          "elapsed_seconds": 4.347,
           "content_chars": 0
         },
         {
@@ -1637,7 +1637,7 @@
             "--token",
             "JQjObK47ZoZiXpxzFgZcSjDHndh",
             "--output",
-            "/private/tmp/zen43-body-8nagjkst/JQjObK47ZoZiXpxzFgZcSjDHndh",
+            "/private/tmp/zen43-body-rij_5eki/JQjObK47ZoZiXpxzFgZcSjDHndh",
             "--as",
             "user",
             "--format",
@@ -1645,8 +1645,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.094,
-          "elapsed_seconds": 5.492,
+          "seconds": 1.003,
+          "elapsed_seconds": 5.351,
           "content_chars": 0
         }
       ]
@@ -1658,7 +1658,7 @@
         "start_unit_id": "doxcnUVnD2RsbnIBVlqbUP7Nleg",
         "end_unit_id": "doxcnT1zVZKgY66BtLrEm5yzHsg"
       },
-      "total_seconds": 2.092,
+      "total_seconds": 2.061,
       "commands": [
         {
           "command": [
@@ -1681,8 +1681,8 @@
           ],
           "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
           "revision": 71,
-          "seconds": 0.613,
-          "elapsed_seconds": 0.614,
+          "seconds": 0.61,
+          "elapsed_seconds": 0.611,
           "content_chars": 15248
         },
         {
@@ -1710,8 +1710,8 @@
           ],
           "purpose": "读取计算后的完整章节区间，取得 Markdown 正文。",
           "revision": 71,
-          "seconds": 0.519,
-          "elapsed_seconds": 1.136,
+          "seconds": 0.532,
+          "elapsed_seconds": 1.147,
           "content_chars": 955
         },
         {
@@ -1721,7 +1721,7 @@
             "--token",
             "CEMjbJM4goj50exy0RVcQD3In6f",
             "--output",
-            "/private/tmp/zen43-body-c7omz59m/CEMjbJM4goj50exy0RVcQD3In6f",
+            "/private/tmp/zen43-body-02nl8cot/CEMjbJM4goj50exy0RVcQD3In6f",
             "--as",
             "user",
             "--format",
@@ -1729,8 +1729,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.953,
-          "elapsed_seconds": 2.09,
+          "seconds": 0.909,
+          "elapsed_seconds": 2.059,
           "content_chars": 0
         }
       ]
@@ -1740,7 +1740,7 @@
       "input": {
         "article": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd"
       },
-      "total_seconds": 12.316,
+      "total_seconds": 12.111,
       "commands": [
         {
           "command": [
@@ -1763,8 +1763,8 @@
           ],
           "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
           "revision": 71,
-          "seconds": 0.583,
-          "elapsed_seconds": 0.583,
+          "seconds": 0.55,
+          "elapsed_seconds": 0.551,
           "content_chars": 15248
         },
         {
@@ -1788,8 +1788,8 @@
           ],
           "purpose": "读取全文 Markdown，保留文章标题与正文结构，随后处理文内图片。",
           "revision": 71,
-          "seconds": 0.544,
-          "elapsed_seconds": 1.131,
+          "seconds": 0.583,
+          "elapsed_seconds": 1.137,
           "content_chars": 7235
         },
         {
@@ -1799,7 +1799,7 @@
             "--token",
             "FlSlb18o0oz5EYxjz2wcFRtDnTf",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/FlSlb18o0oz5EYxjz2wcFRtDnTf",
+            "/private/tmp/zen43-body-o3qv9c6b/FlSlb18o0oz5EYxjz2wcFRtDnTf",
             "--as",
             "user",
             "--format",
@@ -1807,8 +1807,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.162,
-          "elapsed_seconds": 2.296,
+          "seconds": 1.033,
+          "elapsed_seconds": 2.173,
           "content_chars": 0
         },
         {
@@ -1818,7 +1818,7 @@
             "--token",
             "XYOabwQx3oBQg1x3e5rcDMf1nEf",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/XYOabwQx3oBQg1x3e5rcDMf1nEf",
+            "/private/tmp/zen43-body-o3qv9c6b/XYOabwQx3oBQg1x3e5rcDMf1nEf",
             "--as",
             "user",
             "--format",
@@ -1826,8 +1826,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.057,
-          "elapsed_seconds": 3.356,
+          "seconds": 1.104,
+          "elapsed_seconds": 3.277,
           "content_chars": 0
         },
         {
@@ -1837,7 +1837,7 @@
             "--token",
             "IoDibWTO3oWsOYxDBIwcJfzmnlh",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/IoDibWTO3oWsOYxDBIwcJfzmnlh",
+            "/private/tmp/zen43-body-o3qv9c6b/IoDibWTO3oWsOYxDBIwcJfzmnlh",
             "--as",
             "user",
             "--format",
@@ -1845,8 +1845,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.083,
-          "elapsed_seconds": 4.44,
+          "seconds": 1.023,
+          "elapsed_seconds": 4.303,
           "content_chars": 0
         },
         {
@@ -1856,7 +1856,7 @@
             "--token",
             "PzIRbqUN2olTD3xnSNxcRtYYnSY",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/PzIRbqUN2olTD3xnSNxcRtYYnSY",
+            "/private/tmp/zen43-body-o3qv9c6b/PzIRbqUN2olTD3xnSNxcRtYYnSY",
             "--as",
             "user",
             "--format",
@@ -1864,8 +1864,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.958,
-          "elapsed_seconds": 5.399,
+          "seconds": 1.005,
+          "elapsed_seconds": 5.309,
           "content_chars": 0
         },
         {
@@ -1875,7 +1875,7 @@
             "--token",
             "FgFnb4LZYoyeiwxWPy6cRrrenRf",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/FgFnb4LZYoyeiwxWPy6cRrrenRf",
+            "/private/tmp/zen43-body-o3qv9c6b/FgFnb4LZYoyeiwxWPy6cRrrenRf",
             "--as",
             "user",
             "--format",
@@ -1883,8 +1883,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.965,
-          "elapsed_seconds": 6.364,
+          "seconds": 0.886,
+          "elapsed_seconds": 6.196,
           "content_chars": 0
         },
         {
@@ -1894,7 +1894,7 @@
             "--token",
             "CEMjbJM4goj50exy0RVcQD3In6f",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/CEMjbJM4goj50exy0RVcQD3In6f",
+            "/private/tmp/zen43-body-o3qv9c6b/CEMjbJM4goj50exy0RVcQD3In6f",
             "--as",
             "user",
             "--format",
@@ -1902,8 +1902,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.931,
-          "elapsed_seconds": 7.297,
+          "seconds": 0.913,
+          "elapsed_seconds": 7.111,
           "content_chars": 0
         },
         {
@@ -1913,7 +1913,7 @@
             "--token",
             "QztFbvbvPoDWJOxt9tXc469inid",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/QztFbvbvPoDWJOxt9tXc469inid",
+            "/private/tmp/zen43-body-o3qv9c6b/QztFbvbvPoDWJOxt9tXc469inid",
             "--as",
             "user",
             "--format",
@@ -1921,8 +1921,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.979,
-          "elapsed_seconds": 8.278,
+          "seconds": 1.007,
+          "elapsed_seconds": 8.118,
           "content_chars": 0
         },
         {
@@ -1932,7 +1932,7 @@
             "--token",
             "JQjObK47ZoZiXpxzFgZcSjDHndh",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/JQjObK47ZoZiXpxzFgZcSjDHndh",
+            "/private/tmp/zen43-body-o3qv9c6b/JQjObK47ZoZiXpxzFgZcSjDHndh",
             "--as",
             "user",
             "--format",
@@ -1940,8 +1940,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.877,
-          "elapsed_seconds": 9.156,
+          "seconds": 0.919,
+          "elapsed_seconds": 9.038,
           "content_chars": 0
         },
         {
@@ -1951,7 +1951,7 @@
             "--token",
             "GiBCbsgoQopfzFxlNbwcGS0un3e",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/GiBCbsgoQopfzFxlNbwcGS0un3e",
+            "/private/tmp/zen43-body-o3qv9c6b/GiBCbsgoQopfzFxlNbwcGS0un3e",
             "--as",
             "user",
             "--format",
@@ -1959,8 +1959,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.13,
-          "elapsed_seconds": 10.288,
+          "seconds": 1.004,
+          "elapsed_seconds": 10.043,
           "content_chars": 0
         },
         {
@@ -1970,7 +1970,7 @@
             "--token",
             "BquubaupLoEIA4x62Jcce1ZDnVh",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/BquubaupLoEIA4x62Jcce1ZDnVh",
+            "/private/tmp/zen43-body-o3qv9c6b/BquubaupLoEIA4x62Jcce1ZDnVh",
             "--as",
             "user",
             "--format",
@@ -1978,8 +1978,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 0.996,
-          "elapsed_seconds": 11.286,
+          "seconds": 1.049,
+          "elapsed_seconds": 11.092,
           "content_chars": 0
         },
         {
@@ -1989,7 +1989,7 @@
             "--token",
             "TIAtbY5mgoD6zVxo6ZgcMqE0nYe",
             "--output",
-            "/private/tmp/zen43-body-p2yylk4a/TIAtbY5mgoD6zVxo6ZgcMqE0nYe",
+            "/private/tmp/zen43-body-o3qv9c6b/TIAtbY5mgoD6zVxo6ZgcMqE0nYe",
             "--as",
             "user",
             "--format",
@@ -1997,8 +1997,8 @@
           ],
           "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
           "revision": null,
-          "seconds": 1.027,
-          "elapsed_seconds": 12.314,
+          "seconds": 1.014,
+          "elapsed_seconds": 12.108,
           "content_chars": 0
         }
       ]

@@ -60,7 +60,23 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 例如：先 `locate(article, keywords)` 取得 `match_tree` 中的 `unit_id`，再 `structure(article, parent_id=该标识, depth=1)` 取得 `outline`，最后 `read(article, unit_ids=[子章标识])` 读取正文。只改变字段和参数名称，命中、层级与完整章节边界保持。
 
-当前每次结构查询仍先读取完整 XML，再构造指定范围；浅层或局部返回较短不代表没有全文预读。原生 outline 能返回标题，但不提供开篇正文信息；本轮没有证明它能完整替代。容器标题与三层跳级仅通过构造数据检查，未作真实扩样。本轮仅同步第五工具的参数名称并核对读取结果，未推进其后续产品审阅。
+当前每次结构查询仍先读取完整 XML，再构造指定范围；浅层或局部返回较短不代表没有全文预读。原生 outline 能返回标题，但不提供开篇正文信息；本轮没有证明它能完整替代。容器标题与三层跳级仅通过构造数据检查，未作真实扩样。字段统一轮仅同步第五工具的参数名称并核对读取结果；第五工具的独立审阅见下一节。
+
+## 仅重跑第五工具
+
+```bash
+python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/body_demo.py
+```
+
+使用现有 `demo.html` 中的三个正文场景输入，仅重新联网执行正文读取；前四工具的 28 个场景对象、采集与重放说明、计时完整复用。`--base` 可选择已有 HTML，`--output` 可指定本次临时目录。输出新 HTML、`evidence.json`、`body-checks.json` 与逐命令计时，不自动覆盖仓库演示。
+
+审阅第五工具时，先查看实际业务 JSON，再看「实际读取范围」和「完整 Markdown 与原位置图片」。读取单位标识与正文块端点分开展示：例如范围输入的第二步章节标识是 `end_unit_id`，实际 `end_block_id` 扩到第二步末尾图片，而不是停在第二步标题。`actual_ranges[].unit_ids` 列出选区内所有单位，包括随父章取得的子章；不只是输入中选中的 ID。
+
+本轮保留业务字段 `article/revision/markdown_path/actual_ranges/images/warnings/scope`；成功 CLI 直接返回该 JSON，不再包裹 `result/evidence_dir`。内部调用与诊断仍落在本地临时证据中。原生 Markdown 的 `<title>` 和局部 `<fragment>` 范围包装目前原样保留，尚未改变转换规则。
+
+HTML 内嵌这三个场景的完整 Markdown 及下载图片快照，图片按 Markdown 引用位置展开，代码围栏内的示例不转换为图片。此区属于演示材料，不是新增工具返回字段；Markdown 文件仍保留图片本地绝对路径。HTML 脱离临时目录仍可审阅快照，但临时文件清除后 JSON 中的旧路径会失效。文字按 Markdown 原文显示，不执行其中 HTML 或链接；这不是 Markdown 排版保真验收。
+
+`body-checks.json` 记录选区、原标题顺序、图片顺序、原生 Markdown 仅替换本地图片路径的逐字比较；旧文件仍在且修订一致时，再比较旧版正文、范围和图片字节。本轮只验证同一篇真实文章的三个场景，未扩展 ZEN-44 的异常或混杂正文规则，也未进行浏览器视觉验收。
 
 ## 文件与数据
 
@@ -71,7 +87,9 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 - `verify_progressive.py`：不联网核对渐进续查、缓存期限、月初迁入与原摘要行为。
 - `demo.py`：真实场景重放、样本核对及自包含结果页生成。
 - `demo_template.html`：展示模板，按五个工具组织场景、结果卡片、调用时间线和核对结论；生成的 demo.html 仍是无需额外文件的独立回放。
-- `demo.html`：本次已执行的回放；知识库检索、摘要与全文检索展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树，正文读取仍展示精简结果，不内嵌文章全文或评论。
+- `demo.html`：本次已执行的回放；五个工具展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树；正文读取内嵌完整 Markdown 和原位置图片快照，不含评论。
+- `body_demo.py`：只重跑第五工具三个真实场景，核对完整范围、Markdown、图片并生成可脱离临时素材目录审阅的 HTML。
+- `body-checks.json`：本轮正文选区、标题与图片顺序、文件转换及新旧内容对比账本。
 - `structure_demo.py`：仅重跑第四工具的八个真实场景和原生能力对照；从已有 demo.html 复用其他工具的完整证据与原计时。
 - `verify_interface.py`：离线核对命中标识到目录、正文的衔接及命令行新参数。
 - `untitled-checks.json`：15 个结构与全文检索场景使用已保存真实响应重放，核对仅删除无标题单位的 title；没有新增联网采集，原计时保留。

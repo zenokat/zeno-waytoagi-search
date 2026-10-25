@@ -71,7 +71,8 @@ class InterfaceChecks(unittest.TestCase):
         """命令行 --parent-id 与 --unit-ids 可串联，正文输入 ID 数组并按原文读取。"""
         directory = self.invoke("structure", "--parent-id", "install")
         selected = [n["unit_id"] for n in directory["outline"]]
-        result = self.invoke("read", "--unit-ids", *selected)["result"]
+        result = self.invoke("read", "--unit-ids", *selected)
+        self.assertNotIn("evidence_dir", result)
         self.cleanup_body(result)
         self.assertEqual(result["actual_ranges"][0]["unit_ids"], ["a", "b"])
         self.assertEqual(self.calls[-1]["--start-block-id"], "a")
@@ -79,7 +80,7 @@ class InterfaceChecks(unittest.TestCase):
 
     def test_cli_range_names_keep_inclusive_end(self):
         """命令行范围新名称仍扩展到终章正文末尾；不误读成原生块端点。"""
-        result = self.invoke("read", "--start-unit-id", "a", "--end-unit-id", "b")["result"]
+        result = self.invoke("read", "--start-unit-id", "a", "--end-unit-id", "b")
         self.cleanup_body(result)
         self.assertEqual(result["actual_ranges"][0]["end_block_id"], "body_b")
         self.assertEqual(result["actual_ranges"][0]["unit_ids"], ["a", "b"])
