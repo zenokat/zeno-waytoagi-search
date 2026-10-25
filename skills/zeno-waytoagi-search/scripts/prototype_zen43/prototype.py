@@ -284,10 +284,11 @@ class Prototype:
         return summaries(self, articles)
 
     def structure(self, article, section=None, depth=1):
-        """获取 article 在 section 下 depth 层标题树；返回标题、读取标识、类型和 children。
+        """获取 article 在 section 下 depth 层标题树；返回目录节点及查询起点 parent。
 
         section 缺省从文章外层开始；指定时不重复基节点，depth=1 只列直接子层。
         普通 read_unit 是原生标题块 ID；@opening/@document 是工具定义的特殊读取单位。
+        has_children 根据原文完整结构判断，不受 depth 裁剪影响；整篇查询的 parent 为 None。
         """
         if type(depth) is not int or depth < 1:
             raise ValueError("展开深度须为正整数")
@@ -296,16 +297,20 @@ class Prototype:
         base = next((u for u in units if u["id"] == section), None) if section else None
         if section and not base:
             raise ValueError("不是可选的顶层章节")
+        # 在深度裁剪之前收集有直接子章的单位，避免把未展开误标为已到底。
+        parents_with_children = {u["parents"][-1] for u in units if u["parents"]}
         visible = [u for u in units if (section in u["parents"] and u["depth"] <= base["depth"] + depth)] if base else [u for u in units if u["depth"] <= depth]
         roots, nodes = [], {}
         # 原文顺序保证父章先出现；局部查询的基节点不在 nodes，其直接子章成为返回树根。
         for unit in visible:
-            node = {"title": unit["title"], "read_unit": unit["id"], "kind": unit["kind"], "children": []}
+            node = {"title": unit["title"], "read_unit": unit["id"], "kind": unit["kind"],
+                    "has_children": unit["id"] in parents_with_children, "children": []}
             nodes[unit["id"]] = node
             parent = nodes.get(unit["parents"][-1]) if unit["parents"] else None
             (parent["children"] if parent else roots).append(node)
         self.diagnostics["structure_units"] = units
-        return {"article": article, "revision": document["revision_id"], "sections": roots}
+        query_parent = {"read_unit": base["id"], "has_children": base["id"] in parents_with_children} if base else None
+        return {"article": article, "revision": document["revision_id"], "parent": query_parent, "sections": roots}
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""

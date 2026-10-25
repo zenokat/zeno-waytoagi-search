@@ -98,9 +98,9 @@
         "--format",
         "json"
       ],
-      "seconds": 0.568,
-      "elapsed_seconds": 0.569,
-      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-001.json",
+      "seconds": 0.529,
+      "elapsed_seconds": 0.529,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-tnvuhaow/call-001.json",
       "revision": 71,
       "content_chars": 594,
       "comments_removed": 0
@@ -124,9 +124,9 @@
         "--format",
         "json"
       ],
-      "seconds": 0.487,
-      "elapsed_seconds": 1.058,
-      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-002.json",
+      "seconds": 0.505,
+      "elapsed_seconds": 1.036,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-tnvuhaow/call-002.json",
       "revision": 71,
       "content_chars": 594,
       "comments_removed": 0
@@ -150,9 +150,9 @@
         "--format",
         "json"
       ],
-      "seconds": 0.499,
-      "elapsed_seconds": 1.56,
-      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-003.json",
+      "seconds": 0.522,
+      "elapsed_seconds": 1.559,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-tnvuhaow/call-003.json",
       "revision": 71,
       "content_chars": 1062,
       "comments_removed": 0
@@ -178,9 +178,9 @@
         "--format",
         "json"
       ],
-      "seconds": 0.598,
-      "elapsed_seconds": 2.159,
-      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-004.json",
+      "seconds": 0.504,
+      "elapsed_seconds": 2.065,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-tnvuhaow/call-004.json",
       "revision": 71,
       "content_chars": 2682,
       "comments_removed": 0
@@ -204,14 +204,14 @@
         "--format",
         "json"
       ],
-      "seconds": 0.522,
-      "elapsed_seconds": 2.682,
-      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-finf_3hk/call-005.json",
+      "seconds": 0.542,
+      "elapsed_seconds": 2.608,
+      "evidence_path": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-tnvuhaow/call-005.json",
       "revision": 7,
       "content_chars": 55,
       "comments_removed": 0
     }
   ],
   "limits": "两篇真实文章；容器内标题与 H2→H4→H6 仅离线构造验证。outline 不含开篇正文信息；未证明可替代 full。",
-  "observed_at": "2026-10-24T22:01:04+08:00"
+  "observed_at": "2026-10-25T10:37:12+08:00"
 }

@@ -77,7 +77,7 @@ class StructureChecks(unittest.TestCase):
         parent = result["sections"][1]
         self.assertEqual(parent["children"][0]["children"][0]["read_unit"], "leaf")
         for node in section_nodes(result["sections"]):
-            self.assertEqual(set(node), {"title", "read_unit", "kind", "children"})
+            self.assertEqual(set(node), {"title", "read_unit", "kind", "has_children", "children"})
         self.assertEqual(result["sections"][0]["kind"], "reading_unit")
         self.assertEqual(parent["kind"], "section")
 
@@ -88,7 +88,32 @@ class StructureChecks(unittest.TestCase):
             status = main()
         self.assertEqual(status, 0)
         result = json.loads(output.getvalue())
-        self.assertEqual(set(result), {"article", "revision", "sections"})
+        self.assertEqual(set(result), {"article", "revision", "parent", "sections"})
+
+    def test_children_flag_uses_full_structure_not_visible_children(self):
+        """同一父章在浅层被截断时仍标有子章，真实叶子及开篇始终标无子章。"""
+        shallow = Prototype(self.folder.name).structure("article")
+        self.assertIsNone(shallow["parent"])
+        parent = shallow["sections"][1]
+        self.assertTrue(parent["has_children"])
+        self.assertEqual(parent["children"], [])
+        deep = Prototype(self.folder.name).structure("article", depth=3)
+        states = {n["read_unit"]: n["has_children"] for n in section_nodes(deep["sections"])}
+        self.assertEqual(states, {"@opening": False, "parent": True, "child": True, "leaf": False, "other": False})
+        # 叶子中含容器内 H1，但它不是可独立选择的子章节。
+        self.assertEqual(deep["sections"][1]["children"][0]["children"][0]["children"], [])
+        self.assertEqual(len(self.calls), 2)
+
+    def test_parent_metadata_describes_selected_unit(self):
+        """局部查询单独说明起点有无子章，起点不混入树、不占展开层数。"""
+        for selected, expected in [("parent", True), ("child", True), ("leaf", False), ("@opening", False)]:
+            result = Prototype(self.folder.name).structure("article", selected)
+            self.assertEqual(result["parent"], {"read_unit": selected, "has_children": expected})
+            self.assertNotIn(selected, [n["read_unit"] for n in section_nodes(result["sections"])])
+        self.content = '<p id="body">无标题正文</p>'
+        result = Prototype(self.folder.name).structure("article", "@document")
+        self.assertEqual(result["parent"], {"read_unit": "@document", "has_children": False})
+        self.assertEqual(result["sections"], [])
 
     def test_depth_is_positive_integer_before_fetch(self):
         """小数、布尔、字符串与非正整数不符合深度规格，应在请求前拒绝。"""

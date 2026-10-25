@@ -114,8 +114,14 @@ def run_demo(output, base):
     for scenario in scenarios:
         assert len(scenario["native"]) == 1
         assert scenario["native"][0]["elapsed_seconds"] <= scenario["total_seconds"]
+        complete_units = scenario["diagnostics"]["structure_units"]
+        parent_ids = {u["parents"][-1] for u in complete_units if u["parents"]}
+        selected = scenario["input"].get("section")
+        expected_parent = {"read_unit": selected, "has_children": selected in parent_ids} if selected else None
+        assert scenario["output"]["parent"] == expected_parent
         for node in section_nodes(scenario["output"]["sections"]):
-            assert set(node) == {"title", "read_unit", "kind", "children"}
+            assert node["has_children"] == (node["read_unit"] in parent_ids)
+            assert set(node) == {"title", "read_unit", "kind", "has_children", "children"}
     capability = check_native_scopes(output, units, parent, deep["output"]["revision"])
     capability["observed_at"] = scenarios[-1]["recorded_at"]
     write_json(output / "structure-capability-check.json", capability)
@@ -124,7 +130,9 @@ def run_demo(output, base):
                    "结构局部范围": "动手安装吧仅返回两个子章；不重复基节点、不含兄弟章；叶子下钻为空",
                    "结构特殊单位": "PDF 开篇为 @opening；真实无标题文章为 @document；特殊单位下无子标题",
                    "结构读取衔接": "沿用上轮全文检索的父章与子章 read_unit，分别取得局部目录和叶子空目录；本轮未执行第五工具",
-                   "结构返回字段": "仅 title、read_unit、kind、children；内部位置、标题等级和祖先数组保留在诊断",
+                   "结构返回字段": "节点含 title、read_unit、kind、has_children、children；内部位置留在诊断，整体重命名尚未确认",
+                   "结构子章标识": "根据完整原文判断；默认一层的父章标有子章但未展开，两层的真实叶子标无子章",
+                   "结构查询起点": "整篇 parent=null；局部 parent 单独返回读取标识与有无子章，不占展开层数",
                    "结构验证时间": scenarios[-1]["recorded_at"]})
     # 保留其他工具的整个场景对象，包括旧计时和上轮重放说明；同名结构场景替换，新增场景追加。
     by_name = {s["name"]: s for s in scenarios}

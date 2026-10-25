@@ -52,9 +52,11 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 第一条读取最新线上文章，生成新的临时演示与证据；不会覆盖仓库里的旧演示。第二条仅运行离线语义检查。`--base` 可指定已有自包含 HTML，`--output` 可指定本次输出目录。源标题或修订变化导致样本断言失败时，应重新核对，不能改成模拟成功。
 
-第四工具返回 `article`、`revision` 和 `sections`；每项仅包含 `title`、`read_unit`、`kind`、`children`。普通章节 kind 为 `section`；开篇和无标题全文为 `reading_unit`，对应标识分别是 `@opening`、`@document`，不是飞书 block_id。内部块位置、标题等级及祖先数组仅保存在诊断。
+第四工具返回 `article`、`revision`、`parent` 和 `sections`；每个目录节点包含 `title`、`read_unit`、`kind`、`has_children`、`children`。普通章节 kind 为 `section`；开篇和无标题全文为 `reading_unit`，对应标识分别是 `@opening`、`@document`，不是飞书 block_id。内部块位置、标题等级及祖先数组仅保存在诊断。
 
-默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。深度边界处空 children 只表示本次未展开，不能据此断言原文没有子章。叶子章节、开篇及无标题单位的局部查询返回空 sections，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
+默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。`has_children` 在深度裁剪前根据完整结构计算：true 且 children 为空表示本次未展开，false 表示确实无子章节。局部查询的 `parent` 单独返回查询起点的 `read_unit` 与 `has_children`，不占层数；整篇查询为 null。叶子章节、开篇及无标题单位的局部查询返回空 sections 和 parent.has_children=false，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
+
+整体参数重命名仍待用户确认；本轮仅增加有无子章标识与查询起点，不更改已有输入名称或第三、第五工具的字段。
 
 当前每次结构查询仍先读取完整 XML，再构造指定范围；浅层或局部返回较短不代表没有全文预读。原生 outline 能返回标题，但不提供开篇正文信息；本轮没有证明它能完整替代。容器标题与三层跳级仅通过构造数据检查，未作真实扩样。第五工具未在本轮推进。
 
