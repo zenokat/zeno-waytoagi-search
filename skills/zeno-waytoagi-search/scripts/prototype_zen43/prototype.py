@@ -376,7 +376,7 @@ class Prototype:
         return result
 
     def read(self, article, unit_ids=None, start_unit_id=None, end_unit_id=None):
-        """读取 article 全文/多章/完整章节范围；返回 Markdown 绝对路径、实际选区和本地图片信息。"""
+        """按 article 及可选单位列表或起止单位读取正文；返回 Markdown 路径、修订、范围类型和警告。"""
         if unit_ids and (start_unit_id or end_unit_id):
             raise ValueError("章节列表与范围不能同时指定")
         full = self.article_fetch(article)
@@ -434,7 +434,7 @@ class Prototype:
         self.diagnostics["body_ranges"] = ranges
         self.diagnostics["body_images"] = images
         return {"article": article, "revision": full["revision_id"], "markdown_path": str(path),
-                "actual_ranges": [{"unit_ids": actual["unit_ids"]} for actual in ranges], "warnings": warnings,
+                "warnings": warnings,
                 "scope": "full" if not unit_ids and not start_unit_id and not end_unit_id else "selected_sections"}
 
 

@@ -296,7 +296,7 @@ def run_demo(output):
     body, body_context = capture("正文读取", "选择父章和其中子章，重叠只输出一次；只获取选区里的图片并嵌入本地路径。",
         {"article": SAMPLE, "unit_ids": [parent["id"], children[0]["id"]]}, "read",
         article=SAMPLE, unit_ids=[parent["id"], children[0]["id"]])
-    assert len(body["actual_ranges"]) == 1
+    assert len(body_context.diagnostics["body_ranges"]) == 1
     assert body_context.diagnostics["body_ranges"][0]["top_level_blocks"] == parent["end"] - parent["start"]
     checks["多章合并与图片"] = f"重叠合并为一段，{assert_images(body, body_context.diagnostics)} 张图片已落盘并嵌入"
 

@@ -97,14 +97,7 @@
   "container_result": {
     "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
     "revision": 116,
-    "markdown_path": "/private/tmp/zen43-body-7ab8swy4/body.md",
-    "actual_ranges": [
-      {
-        "unit_ids": [
-          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
-        ]
-      }
-    ],
+    "markdown_path": "/private/tmp/zen43-body-rk4fqkug/body.md",
     "warnings": [],
     "scope": "selected_sections"
   },
@@ -175,5 +168,17 @@
     "browser_visual_verification": false,
     "body_json_only_product_fields": true,
     "errors_without_cli_or_evidence_paths": true
+  },
+  "range_field_removal": {
+    "recorded_at": "2026-10-25T13:03:29+08:00",
+    "scenarios": [
+      "正文读取",
+      "完整章节范围",
+      "全文读取",
+      "容器正文读取"
+    ],
+    "new_source_requests": 0,
+    "markdown_ranges_images_unchanged": true,
+    "scope": "使用已有真实缓存执行当前 read，审阅页保留历史采集命令与计时；未执行系统性边界研究。"
   }
 }

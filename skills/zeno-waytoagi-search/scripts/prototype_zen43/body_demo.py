@@ -1,7 +1,7 @@
 """第五工具的真实只读演示：核对实际范围、Markdown 原文及原位置图片。
 
 仅重新执行已有三个正文场景，完整复用前四工具的证据及计时。
-审阅材料嵌入独立 HTML；业务 JSON 仍只返回正文文件路径、范围与素材状态。
+审阅材料嵌入独立 HTML；实际选区与素材映射只保存在内部诊断。
 """
 
 import argparse
@@ -56,7 +56,7 @@ def review_body(result, context, arguments):
     selected_units, image_tokens = [], []
     actual_ranges = context.diagnostics["body_ranges"]
     body_images = context.diagnostics["body_images"]
-    assert result["actual_ranges"] == [{"unit_ids": actual["unit_ids"]} for actual in actual_ranges]
+    assert "actual_ranges" not in result
     assert "images" not in result
     for actual in actual_ranges:
         left, right = positions[actual["start_block_id"]], positions[actual["end_block_id"]] + 1
@@ -132,7 +132,7 @@ def run_demo(output, base):
         assert sum(actual["top_level_blocks"] for actual in item["diagnostics"]["body_ranges"]) == blocks
         assert len(item["body_review"]["units"]) == units
         assert len(item["body_review"]["images"]) == images
-    assert len(overlap["output"]["actual_ranges"]) == 1
+    assert len(overlap["diagnostics"]["body_ranges"]) == 1
     assert overlap["body_review"]["units"][0]["unit_id"] == overlap["input"]["unit_ids"][0]
     assert len(bounded["body_review"]["units"]) == 2
     assert bounded["body_review"]["units"][-1]["unit_id"] == bounded["input"]["end_unit_id"]
@@ -157,7 +157,9 @@ def run_demo(output, base):
                 new_body = new_body.replace(new_images[token]["saved_path"], token)
                 assert Path(old_images[token]["saved_path"]).read_bytes() == Path(new_images[token]["saved_path"]).read_bytes()
             assert old_body == new_body
-            assert [{"unit_ids": actual["unit_ids"]} for actual in old["output"]["actual_ranges"]] == new["output"]["actual_ranges"]
+            old_ranges = old.get("diagnostics", {}).get("body_ranges", old["output"].get("actual_ranges", []))
+            assert [actual["unit_ids"] for actual in old_ranges] == [
+                actual["unit_ids"] for actual in new["diagnostics"]["body_ranges"]]
             comparison["same_ranges_and_image_bytes_after_format_conversion"] = True
         comparisons.append(comparison)
     replacements = {item["name"]: item for item in scenarios}

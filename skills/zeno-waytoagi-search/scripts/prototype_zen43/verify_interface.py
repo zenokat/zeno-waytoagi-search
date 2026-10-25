@@ -64,7 +64,8 @@ class InterfaceChecks(unittest.TestCase):
         self.assertEqual(unit_id, located["match_tree"][0]["children"][0]["unit_id"])
         result = context.read("article", unit_ids=[unit_id])
         self.cleanup_body(result)
-        self.assertEqual(result["actual_ranges"], [{"unit_ids": ["a"]}])
+        self.assertNotIn("actual_ranges", result)
+        self.assertEqual(context.diagnostics["body_ranges"][0]["unit_ids"], ["a"])
         self.assertNotIn("images", result)
         self.assertEqual([c["--scope"] for c in self.calls], ["keyword", "full", "range"])
 
@@ -75,7 +76,7 @@ class InterfaceChecks(unittest.TestCase):
         result = self.invoke("read", "--unit-ids", *selected)
         self.assertNotIn("evidence_dir", result)
         self.cleanup_body(result)
-        self.assertEqual(result["actual_ranges"][0]["unit_ids"], ["a", "b"])
+        self.assertNotIn("actual_ranges", result)
         self.assertEqual(self.calls[-1]["--start-block-id"], "a")
         self.assertEqual(self.calls[-1]["--end-block-id"], "body_b")
 
@@ -83,9 +84,9 @@ class InterfaceChecks(unittest.TestCase):
         """命令行范围新名称仍扩展到终章正文末尾；不误读成原生块端点。"""
         result = self.invoke("read", "--start-unit-id", "a", "--end-unit-id", "b")
         self.cleanup_body(result)
-        self.assertNotIn("end_block_id", result["actual_ranges"][0])
+        self.assertNotIn("actual_ranges", result)
+        self.assertEqual(self.calls[-1]["--start-block-id"], "a")
         self.assertEqual(self.calls[-1]["--end-block-id"], "body_b")
-        self.assertEqual(result["actual_ranges"][0]["unit_ids"], ["a", "b"])
 
     def test_cli_failure_does_not_expose_backend_or_evidence_path(self):
         """来源失败只交付产品层错误；底层 CLI、块标识与证据目录留在内部。"""

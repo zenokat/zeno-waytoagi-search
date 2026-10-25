@@ -56,7 +56,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。`has_children` 在深度裁剪前根据完整结构计算：true 且 children 为空表示本次未展开，false 表示确实无子章节。局部查询的 `parent` 单独返回查询起点的 `unit_id` 与 `has_children`，不占层数；整篇查询为 null。叶子章节、开篇及无标题单位的局部查询返回空 outline 和 parent.has_children=false，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
 
-统一命名已确认：全文检索返回 `match_tree`，篇章结构返回 `outline`；节点标识为 `unit_id`，结构查询起点输入为 `parent_id`，正文选择输入为 `unit_ids`，范围输入为 `start_unit_id` / `end_unit_id`。正文返回的实际选区中，读取单位标识列表也使用 `unit_ids`；实际正文块端点只保存在内部诊断，不返回调用方。原型 Python 接口和 CLI 同步采用新名称；本轮不是生产接口兼容层。
+统一命名已确认：全文检索返回 `match_tree`，篇章结构返回 `outline`；节点标识为 `unit_id`，结构查询起点输入为 `parent_id`，正文选择输入为 `unit_ids`，范围输入为 `start_unit_id` / `end_unit_id`。正文成功返回不再重复列出实际选区；范围合并、读取单位覆盖及正文块端点只保存在内部诊断。原型 Python 接口和 CLI 同步采用新名称；本轮不是生产接口兼容层。
 
 例如：先 `locate(article, keywords)` 取得 `match_tree` 中的 `unit_id`，再 `structure(article, parent_id=该标识, depth=1)` 取得 `outline`，最后 `read(article, unit_ids=[子章标识])` 读取正文。只改变字段和参数名称，命中、层级与完整章节边界保持。
 
@@ -70,9 +70,9 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/body_demo.py
 
 使用现有 `demo.html` 中的三个正文场景输入，仅重新联网执行正文读取；前四工具的 28 个场景对象、采集与重放说明、计时完整复用。`--base` 可选择已有 HTML，`--output` 可指定本次临时目录。输出新 HTML、`evidence.json`、`body-checks.json` 与逐命令计时，不自动覆盖仓库演示。
 
-审阅第五工具时，先查看实际业务 JSON，再看「实际读取范围」和「完整 Markdown 与原位置图片」。调用方只需原样传递 `unit_id`：例如 `end_unit_id` 选择第二步时，工具内部负责读完第二步的正文和图片，不要求调用方知道块端点。`actual_ranges[].unit_ids` 列出选区内所有单位，包括随父章取得的子章；不只是输入中选中的 ID。
+审阅第五工具时，先查看实际业务 JSON，再看「内部范围核对（审阅材料）」和「完整 Markdown 与原位置图片」。调用方只需原样传递 `unit_id`：例如 `end_unit_id` 选择第二步时，工具内部负责读完第二步的正文和图片，不要求调用方知道块端点。父章包含下级内容、起止范围包含终章完整内容、重叠选择合并等规则由工具内部执行；成功返回不包含 `actual_ranges`。
 
-当前正文业务字段为 `article/revision/markdown_path/actual_ranges/warnings/scope`；`actual_ranges` 每项只含 `unit_ids`。图片索引、块端点和块数量留在内部诊断。成功与失败输出均不返回证据目录；原生错误详情也留在诊断。正文移除范围包装，文档原标题转为加粗文本，容器优先转换为 Markdown。
+当前正文业务字段为 `article/revision/markdown_path/warnings/scope`。图片索引、块端点和块数量留在内部诊断。成功与失败输出均不返回证据目录；原生错误详情也留在诊断。正文移除范围包装，文档原标题转为加粗文本，容器优先转换为 Markdown。
 
 HTML 内嵌这三个场景的完整 Markdown 及下载图片快照，图片按 Markdown 引用位置展开，代码围栏内的示例不转换为图片。此区属于演示材料，不是新增工具返回字段；Markdown 文件仍保留图片本地绝对路径。HTML 脱离临时目录仍可审阅快照，但临时文件清除后 JSON 中的旧路径会失效。文字按 Markdown 原文显示，不执行其中 HTML 或链接；这不是 Markdown 排版保真验收。
 
@@ -107,7 +107,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_article_cache
 
 ## 已确认的产品层接口与 Markdown 优先规则
 
-用户已确认：Agent 通过五工具外层接口满足需求，读取与定位只认产品 `unit_id`，不要求接触底层 CLI 或解释块 ID。正文默认返回已精简，`actual_ranges` 中不再包含块端点和块数量，JSON 不重复列图片清单；图片引用保留正文原位置，素材失败通过 `warnings` 与原位置标记说明。全文检索仍用 `snippet_xml` 保留片段结构，但清除块 ID、范围包装等定位属性，文档引用转成可见名称和链接；片段排序与章节归属在内部完成。
+用户已确认：Agent 通过五工具外层接口满足需求，读取与定位只认产品 `unit_id`，不要求接触底层 CLI 或解释块 ID。正文默认返回已精简，不再返回 `actual_ranges`，JSON 不重复列图片清单；图片引用保留正文原位置，素材失败通过 `warnings` 与原位置标记说明。全文检索仍用 `snippet_xml` 保留片段结构，但清除块 ID、范围包装等定位属性，文档引用转成可见名称和链接；片段排序与章节归属在内部完成。
 
 `top_level_blocks` 是内部顶层内容块数量，整张表格或一个分栏容器各算一个，不是章节、字数或表格行数。多章输入会先计算和合并实际区间，所以没有输入起止章节时，旧结果仍有实际正文块起止 ID。这两个端点用于调用原生 range，不应让调用方误认为必须自行传入块 ID。
 
@@ -121,7 +121,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_article_cache
 
 普通章节当前复用底层标题标识的字符串，但调用方只将其视为不透明的 `unit_id`，不解析、不转换，也不另行获取正文块标识。正文内的来源链接和本地图片路径是资料引用，不是块定位接口。
 
-Markdown 规则依据 [GFM 规范](https://github.github.com/gfm/)；普通表格保留行列，不再默认拆为字段列表。合并单元格、复杂嵌入内容及其他系统性异常仍由 ZEN-44 继续验证；本轮不宣称所有容器均无损转换，也未作浏览器视觉验收。
+Markdown 规则依据 [GFM 规范](https://github.github.com/gfm/)；普通表格保留行列，不再默认拆为字段列表。完整交付、部分成功和补读协议留给 [ZEN-44](https://linear.app/zenokat/issue/ZEN-44)；所有内容类型及组合的阅读格式映射、现有项目复用和 Markdown／HTML／截图选择规则另由 [ZEN-57](https://linear.app/zenokat/issue/ZEN-57) 研究。当前分栏继续逐栏展开并标注栏序号；本轮不宣称所有容器均无损转换，也未作浏览器视觉验收。
 
 ## 文件与数据
 

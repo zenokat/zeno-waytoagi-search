@@ -175,7 +175,8 @@ def build_preview(xml_path, result_path, output, diagnostics_path=None):
     blocks, _, positions = section_model(source["content"])
     parts = ["> 阅读形式对照样张：由同修订已取得的 XML 本地转换，采用正文工具相同的 Markdown 优先规则。",
              "> 来源：" + result["article"]]
-    for actual in diagnostics.get("body_ranges", result["actual_ranges"]):
+    ranges = diagnostics["body_ranges"] if "body_ranges" in diagnostics else result["actual_ranges"]
+    for actual in ranges:
         left, right = positions[actual["start_block_id"]], positions[actual["end_block_id"]] + 1
         for block in blocks[left:right]:
             rendered = render_block(block, diagnostics.get("body_images", result.get("images", {})))

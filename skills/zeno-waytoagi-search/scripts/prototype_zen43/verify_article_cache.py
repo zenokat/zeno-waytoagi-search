@@ -70,7 +70,8 @@ class ArticleCacheChecks(unittest.TestCase):
         again = again_context.read("article", unit_ids=["chapter"])
         self.assertEqual(len(self.calls), 4)
         self.assertEqual(Path(body["markdown_path"]).read_text(), Path(again["markdown_path"]).read_text())
-        self.assertEqual(body["actual_ranges"], again["actual_ranges"])
+        self.assertEqual({key: value for key, value in body.items() if key != "markdown_path"},
+                         {key: value for key, value in again.items() if key != "markdown_path"})
         self.assertEqual(again_context.calls, [])
 
     def test_seven_day_expiry_refetches_only_when_needed(self):

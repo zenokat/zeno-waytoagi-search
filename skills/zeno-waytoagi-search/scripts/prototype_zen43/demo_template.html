@@ -76,22 +76,22 @@ function show(index){
   current=index;const item=evidence.scenarios[index];const group=groups.find(entry=>entry.names.includes(item.name));remembered.set(group.name,index);renderNavigation(group);
   element('recorded-at').textContent='本场景采集于 '+(item.recorded_at||evidence.checks['验证时间']).replace('T',' ').replace('+08:00','（UTC+8）');
   element('name').textContent=item.name;element('explain').textContent=item.explain;element('input').textContent=JSON.stringify(item.input,null,2);element('output').textContent=JSON.stringify(item.output,null,2);element('output-label').textContent=item.exact_output?'实际返回给 Agent 的 JSON':'精简结构化展示（完整结果保存在本地文件）';element('diagnostics').textContent=JSON.stringify(item.diagnostics||{},null,2);
-  metric('total-time',item.total_seconds.toFixed(3),'秒');metric('request-count',item.native.length,'次');const result=item.output;const count=result.results?.length??(result.match_tree?flattenSections(result.match_tree).filter(section=>section.hits.length).length:undefined)??(result.outline?flattenSections(result.outline).length:undefined)??result.actual_ranges?.length??0;metric('result-count',count,result.actual_ranges?'段':result.match_tree||result.outline?'个':'条');element('result-metric-label').textContent=result.match_tree?'命中读取单位':result.outline?'返回读取单位':result.actual_ranges?'合并后范围':'本次结果';renderResult(result,item.input);renderBodyReview(item);renderCommands(item);
+  metric('total-time',item.total_seconds.toFixed(3),'秒');metric('request-count',item.native.length,'次');const result=item.output;const count=result.results?.length??(result.match_tree?flattenSections(result.match_tree).filter(section=>section.hits.length).length:undefined)??(result.outline?flattenSections(result.outline).length:undefined)??(result.markdown_path?1:0);metric('result-count',count,result.markdown_path?'份':result.match_tree||result.outline?'个':'条');element('result-metric-label').textContent=result.match_tree?'命中读取单位':result.outline?'返回读取单位':result.markdown_path?'正文文件':'本次结果';renderResult(result,item.input);renderBodyReview(item);renderCommands(item);
 }
 /** 输入正文场景 item，展示实际范围与完整文件快照；只按纯文本显示 Markdown，无返回值。 */
 function renderBodyReview(item){
   const panel=element('body-review');panel.replaceChildren();panel.hidden=!item.body_review;if(panel.hidden)return;
   const review=item.body_review;
-  appendText(panel,'h3','实际读取范围','section-label');
+  appendText(panel,'h3','内部范围核对（审阅材料）','section-label');
   appendText(panel,'p','以下名称取自本次完整 XML；类型说明与审阅快照不加入业务 JSON。','muted small');
-  item.output.actual_ranges.forEach((range,index)=>{
+  (item.diagnostics?.body_ranges||[]).forEach((range,index)=>{
     const card=appendText(panel,'div','','result-card');
     appendText(card,'h3','范围 '+(index+1));
     review.units.filter(unit=>range.unit_ids.includes(unit.unit_id)).forEach(unit=>{
       const label=unit.title??(unit.kind==='opening'?'开篇正文 · 非原文标题':'无标题全文 · 非原文标题');
       appendText(card,'p',label+(unit.explicitly_selected?' · 输入中明确选择':''),'body-unit');
     });
-    const detail=appendText(card,'details','','json-details');appendText(detail,'summary','实际覆盖的读取单位');appendText(detail,'pre',JSON.stringify(range,null,2));
+    const detail=appendText(card,'details','','json-details');appendText(detail,'summary','实际覆盖的读取单位');appendText(detail,'pre',JSON.stringify({unit_ids:range.unit_ids},null,2));
   });
   appendText(panel,'h3','完整 Markdown 与原位置图片','section-label');
   appendText(panel,'p','文字保留 Markdown 原样；图片使用本次下载文件的内嵌快照，按文件引用位置展开。这里是离线审阅材料；取得文件不代表调用方已读完。','muted small');
@@ -194,7 +194,7 @@ function renderResult(result,input={}){
     if(!nodes.length)appendText(panel,'p','本次原生查询未返回命中。','empty');
     const tree=appendText(panel,'div','','match-tree');renderMatchedSections(tree,result.match_tree,result.article);
   }
-  if(result.markdown_path){appendText(panel,'h3',result.scope==='full'?'全文已取得':'所选章节已取得');appendText(panel,'p','合并后 '+result.actual_ranges.length+' 段；图片引用保留在正文原位置。','result-state');appendText(panel,'p',result.warnings.length?'素材存在未完成项，详见结构化结果。':'本次素材均已获取。','muted small');appendText(panel,'p','Markdown 保存位置','section-label');appendText(panel,'p',result.markdown_path,'path');}
+  if(result.markdown_path){appendText(panel,'h3',result.scope==='full'?'全文已取得':'所选章节已取得');appendText(panel,'p','正文文件已生成，图片引用保留在正文原位置。','result-state');appendText(panel,'p',result.warnings.length?'素材存在未完成项，详见结构化结果。':'本次素材均已获取。','muted small');appendText(panel,'p','Markdown 保存位置','section-label');appendText(panel,'p',result.markdown_path,'path');}
 }
 /** 从地址锚点读取场景；无效或缺失时显示第一项，无返回值。 */
 function restoreSelection(){const match=location.hash.match(/^#scenario=(\d+)$/);const index=match?Number(match[1]):0;show(evidence.scenarios[index]?index:0);}
