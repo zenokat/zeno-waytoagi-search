@@ -1,0 +1,126 @@
+{
+  "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+  "title": "详解：飞书多维表格",
+  "revision": 116,
+  "input": {
+    "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+    "unit_ids": [
+      "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+    ]
+  },
+  "output": {
+    "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+    "revision": 116,
+    "markdown_path": "/private/tmp/zen43-body-gui6h1h4/body.md",
+    "actual_ranges": [
+      {
+        "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+        "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+        "top_level_blocks": 7,
+        "unit_ids": [
+          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+        ]
+      }
+    ],
+    "images": {
+      "Efipb3YjsooLUKxegPrc02G4nzf": {
+        "content_type": "image/png",
+        "saved_path": "/private/tmp/zen43-body-gui6h1h4/Efipb3YjsooLUKxegPrc02G4nzf.png",
+        "size_bytes": 1019911
+      }
+    },
+    "warnings": [],
+    "scope": "selected_sections"
+  },
+  "table": {
+    "rows": 2,
+    "columns_per_row": [
+      5,
+      5
+    ],
+    "citation_count": 25,
+    "all_titles_and_document_ids_preserved_in_order": true,
+    "unchanged_by_image_fix": true
+  },
+  "grid": {
+    "column_count": 2,
+    "image_count": 1,
+    "image_src_is_local_absolute_path": true,
+    "image_sha256": "12482b8bdbb46a11702677111d69ee22b24360a5346010338a5bab6800bfd48a"
+  },
+  "comparison": {
+    "same_revision_and_ranges": true,
+    "only_image_reference_changed": true,
+    "image_bytes_unchanged": true
+  },
+  "limits": "表格和分栏仍为 HTML/XML 混合内容；cite 名称保留于 title 属性，未转换为普通 Markdown 链接；未递归读取链接文档，未作浏览器视觉验收。",
+  "evidence_dir": "/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-vi3esn9d",
+  "native": [
+    {
+      "command": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "--scope",
+        "full",
+        "--doc-format",
+        "xml",
+        "--detail",
+        "with-ids",
+        "--max-depth",
+        "-1",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 1.747,
+      "elapsed_seconds": 1.747
+    },
+    {
+      "command": [
+        "docs",
+        "+fetch",
+        "--doc",
+        "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "--scope",
+        "range",
+        "--doc-format",
+        "markdown",
+        "--detail",
+        "simple",
+        "--max-depth",
+        "-1",
+        "--start-block-id",
+        "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+        "--end-block-id",
+        "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 1.048,
+      "elapsed_seconds": 2.799
+    },
+    {
+      "command": [
+        "docs",
+        "+media-preview",
+        "--token",
+        "Efipb3YjsooLUKxegPrc02G4nzf",
+        "--output",
+        "/private/tmp/zen43-body-gui6h1h4/Efipb3YjsooLUKxegPrc02G4nzf",
+        "--as",
+        "user",
+        "--format",
+        "json"
+      ],
+      "seconds": 1.256,
+      "elapsed_seconds": 4.057
+    }
+  ],
+  "recorded_at": "2026-10-25T11:37:53+08:00",
+  "source": "实际搜索候选后，通过正文 CLI 真实读取含表格的完整章节；前后同修订对比，不是模拟样本。"
+}

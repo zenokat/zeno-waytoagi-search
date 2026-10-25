@@ -78,6 +78,18 @@ HTML 内嵌这三个场景的完整 Markdown 及下载图片快照，图片按 M
 
 `body-checks.json` 记录选区、原标题顺序、图片顺序、原生 Markdown 仅替换本地图片路径的逐字比较；旧文件仍在且修订一致时，再比较旧版正文、范围和图片字节。本轮只验证同一篇真实文章的三个场景，未扩展 ZEN-44 的异常或混杂正文规则，也未进行浏览器视觉验收。
 
+### 补充容器真实样本
+
+另读《详解：飞书多维表格》的“附上宝藏飞书多维表格模板”完整章节，revision=116，包含 2 行 5 列表格、25 条表内文档引用及两栏布局中的 1 张图片。实际业务 JSON 和核对结论保存在 `container-checks.json`；该样本暂未加入上面三个场景的 HTML 回放。
+
+```bash
+python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/prototype.py read --article https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f --unit-ids Fbu3dBepXo7sQRxL4TncS6GpnPk
+```
+
+这个样本的表格和分栏仍为原生 HTML/XML 混合内容，不是纯 Markdown 表格；文档名称在 `<cite title="…">` 属性中，文件原文保留，但编辑器未必将其显示为可见链接。Agent 从文件读到同一份原文，不等于它与人看到相同排版，也不等于链接文章已被读取。图片须由 Agent 单独打开。
+
+样本发现并修复了容器图片路径漏改写：普通图片使用 URL，分栏图片使用 `<img src="原生标识">`。现在两种引用均替换为实际本地路径；失败时在原引用处标记，其他正文不变。修复前后表格内容、25 条引用的标题与标识顺序、范围及图片字节一致。`verify_body.py` 的两条离线回归检查覆盖成功和失败路径；没有扩大章节或混杂正文规则。
+
 ## 文件与数据
 
 - `prototype.py`：五个统一入口、章节模型和只读调用封装；旧整页日志路径仅为历史性能实验保留。
@@ -90,6 +102,8 @@ HTML 内嵌这三个场景的完整 Markdown 及下载图片快照，图片按 M
 - `demo.html`：本次已执行的回放；五个工具展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树；正文读取内嵌完整 Markdown 和原位置图片快照，不含评论。
 - `body_demo.py`：只重跑第五工具三个真实场景，核对完整范围、Markdown、图片并生成可脱离临时素材目录审阅的 HTML。
 - `body-checks.json`：本轮正文选区、标题与图片顺序、文件转换及新旧内容对比账本。
+- `container-checks.json`：补充真实表格及分栏样本的输入、实际返回、引用顺序与图片路径核对。
+- `verify_body.py`：正文图片在普通 Markdown 与 HTML 容器中的引用改写及失败标记检查。
 - `structure_demo.py`：仅重跑第四工具的八个真实场景和原生能力对照；从已有 demo.html 复用其他工具的完整证据与原计时。
 - `verify_interface.py`：离线核对命中标识到目录、正文的衔接及命令行新参数。
 - `untitled-checks.json`：15 个结构与全文检索场景使用已保存真实响应重放，核对仅删除无标题单位的 title；没有新增联网采集，原计时保留。

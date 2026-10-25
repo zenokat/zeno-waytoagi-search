@@ -41,6 +41,14 @@ def xml_root(content):
     return root
 
 
+def localize_image_reference(content, token, replacement):
+    """将 content 中 token 对应图片引用改为 replacement 本地路径或失败标记；返回新正文，不改其他文字。"""
+    content = content.replace("https://feishu.cn/file/" + token, replacement)
+    # 容器里的图片仍是 HTML img，src 为原生 token；定点改属性以保留混合 Markdown 的其余内容。
+    pattern = r'(<img\b[^>]*?\ssrc=)(["\x27])' + re.escape(token) + r'\2'
+    return re.sub(pattern, lambda match: match[1] + match[2] + replacement + match[2], content)
+
+
 def strip_comments(response):
     """原地剥除 response 中评论 sidecar、评论正文和锚点；返回剥除数量，不保留评论文本。"""
     count = 0
@@ -397,10 +405,8 @@ class Prototype:
                             images[token] = {"status": "failed", "reason": str(error)}
                             warnings.append("图片获取失败：" + token + "；" + str(error))
                     saved = images[token].get("saved_path")
-                    if saved:
-                        content = content.replace("https://feishu.cn/file/" + token, str(Path(saved).resolve()))
-                    else:
-                        content = content.replace("https://feishu.cn/file/" + token, "图片获取失败:" + token)
+                    replacement = str(Path(saved).resolve()) if saved else "图片获取失败:" + token
+                    content = localize_image_reference(content, token, replacement)
             markdown.append(content)
             ranges.append({"start_block_id": first, "end_block_id": last, "top_level_blocks": right - left,
                            "unit_ids": [u["id"] for u in units if left <= u["start"] < right]})
