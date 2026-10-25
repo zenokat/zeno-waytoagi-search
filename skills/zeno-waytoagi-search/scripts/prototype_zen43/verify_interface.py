@@ -65,7 +65,7 @@ class InterfaceChecks(unittest.TestCase):
         result = context.read("article", unit_ids=[unit_id])
         self.cleanup_body(result)
         self.assertEqual(result["actual_ranges"], [{"start_block_id": "a", "end_block_id": "body_a", "top_level_blocks": 2, "unit_ids": ["a"]}])
-        self.assertEqual([c["--scope"] for c in self.calls], ["keyword", "full", "full", "full", "range"])
+        self.assertEqual([c["--scope"] for c in self.calls], ["keyword", "full", "range"])
 
     def test_cli_parent_id_and_unit_ids(self):
         """命令行 --parent-id 与 --unit-ids 可串联，正文输入 ID 数组并按原文读取。"""

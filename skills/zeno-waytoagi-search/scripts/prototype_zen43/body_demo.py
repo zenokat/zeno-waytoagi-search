@@ -16,6 +16,7 @@ import time
 from zoneinfo import ZoneInfo
 
 from demo import assert_images, build_html, command_purpose
+from article_cache import load_article_cache
 from prototype import Prototype, section_model, write_json
 
 NAMES = ["正文读取", "完整章节范围", "全文读取"]
@@ -41,7 +42,14 @@ def markdown_headings(content):
 
 def review_body(result, context, arguments):
     """核对 result 文件与 context 原生响应，按 arguments 标示选择；返回仅供演示的正文与内嵌图片。"""
-    full = json.loads(Path(context.calls[0]["evidence_path"]).read_text())["data"]["document"]
+    _, snapshot = load_article_cache(context, arguments["article"])
+
+    def saved_document(scope, format, **options):
+        """按 scope、format、options 读取本次已用过的原生缓存响应；返回文档，不追加网络或诊断动作。"""
+        key = json.dumps({"scope": scope, "format": format, "max_depth": -1, **options}, sort_keys=True)
+        return snapshot["responses"][key]
+
+    full = saved_document("full", "xml")
     blocks, units, _ = section_model(full["content"])
     positions = {block.get("id"): index for index, block in enumerate(blocks)}
     selected_units, image_tokens = [], []
@@ -58,11 +66,9 @@ def review_body(result, context, arguments):
     assert_images(result)
     markdown = Path(result["markdown_path"]).read_text(encoding="utf-8")
     raw_parts = []
-    for call in context.calls:
-        options = dict(zip(call["arguments"][2::2], call["arguments"][3::2]))
-        if options.get("--doc-format") != "markdown":
-            continue
-        body = json.loads(Path(call["evidence_path"]).read_text())["data"]["document"]
+    for actual in result["actual_ranges"]:
+        body = saved_document("full", "markdown") if result["scope"] == "full" else saved_document(
+            "range", "markdown", start_block_id=actual["start_block_id"], end_block_id=actual["end_block_id"])
         assert body["revision_id"] == result["revision"]
         content = body["content"]
         for token, image in result["images"].items():

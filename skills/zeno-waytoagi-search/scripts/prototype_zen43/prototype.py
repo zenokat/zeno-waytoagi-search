@@ -294,6 +294,11 @@ class Prototype:
         from summary_reader import summaries
         return summaries(self, articles)
 
+    def article_fetch(self, article, scope="full", format="xml", **options):
+        """输入 article、scope、format 与范围选项；返回后三工具共用的七天文章快照内容。"""
+        from article_cache import fetch_article
+        return fetch_article(self, article, scope, format, **options)
+
     def structure(self, article, parent_id=None, depth=1):
         """获取 article 在 parent_id 下 depth 层标题树；返回目录节点及查询起点 parent。
 
@@ -303,7 +308,7 @@ class Prototype:
         """
         if type(depth) is not int or depth < 1:
             raise ValueError("展开深度须为正整数")
-        document = self.fetch(article)
+        document = self.article_fetch(article)
         _, units, _ = section_model(document["content"])
         base = next((u for u in units if u["id"] == parent_id), None) if parent_id else None
         if parent_id and not base:
@@ -327,13 +332,13 @@ class Prototype:
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""
-        hits = self.fetch(article, "keyword", keyword="|".join(keywords), context_before=0, context_after=0)
+        hits = self.article_fetch(article, "keyword", keyword="|".join(keywords), context_before=0, context_after=0)
         root = xml_root(hits["content"])
         result = {"article": article, "revision": hits["revision_id"], "keywords": keywords, "match_tree": []}
         # 原生明确返回空内容时没有待补的位置；不为无命中查询再读取全文。
         if not hits["content"].strip() or not len(root):
             return result
-        full = self.fetch(article)
+        full = self.article_fetch(article)
         blocks, units, positions = section_model(full["content"])
         if hits["revision_id"] != full["revision_id"]:
             raise ValueError("定位时文章发生更新")
@@ -346,7 +351,7 @@ class Prototype:
             seen.add(block_id)
             content = ET.tostring(element, encoding="unicode")
             if container_id:
-                complete = self.fetch(article, "range", start_block_id=container_id, end_block_id=container_id)
+                complete = self.article_fetch(article, "range", start_block_id=container_id, end_block_id=container_id)
                 if complete["revision_id"] != full["revision_id"]:
                     raise ValueError("补全容器时文章发生更新")
                 content = complete["content"]
@@ -361,7 +366,7 @@ class Prototype:
         """读取 article 全文/多章/完整章节范围；返回 Markdown 绝对路径、实际选区和本地图片信息。"""
         if unit_ids and (start_unit_id or end_unit_id):
             raise ValueError("章节列表与范围不能同时指定")
-        full = self.fetch(article)
+        full = self.article_fetch(article)
         blocks, units, _ = section_model(full["content"])
         by_id = {unit["id"]: unit for unit in units}
         if unit_ids:
@@ -386,9 +391,9 @@ class Prototype:
             if not first or not last:
                 raise ValueError("选区端点缺少块标识")
             if not unit_ids and not start_unit_id and not end_unit_id:
-                body = self.fetch(article, "full", format="markdown")
+                body = self.article_fetch(article, "full", format="markdown")
             else:
-                body = self.fetch(article, "range", format="markdown", start_block_id=first, end_block_id=last)
+                body = self.article_fetch(article, "range", format="markdown", start_block_id=first, end_block_id=last)
             if body["revision_id"] != full["revision_id"]:
                 raise ValueError("正文与章节结构修订不一致")
             content = body["content"]
@@ -399,8 +404,8 @@ class Prototype:
                         continue
                     if token not in images:
                         try:
-                            result = self.call(["docs", "+media-preview", "--token", token, "--output", str(folder / token)])
-                            images[token] = result["data"]
+                            from article_cache import preview_article_image
+                            images[token] = preview_article_image(self, article, token, folder / token)
                         except ValueError as error:
                             images[token] = {"status": "failed", "reason": str(error)}
                             warnings.append("图片获取失败：" + token + "；" + str(error))

@@ -1,0 +1,15 @@
+{
+  "source_revision": 116,
+  "table_columns": 5,
+  "table_data_rows": 1,
+  "table_citations_checked": 25,
+  "grid_columns": 2,
+  "grid_list_items_checked": 4,
+  "subpage_references_checked": 53,
+  "all_reference_titles_and_ids_preserved": true,
+  "local_image_path_preserved": true,
+  "raw_tags_removed_from_preview": true,
+  "preview": "/private/tmp/zen43-table-review-20261025/agent-reading-preview.md",
+  "limits": "只转换本次已观测结构；尚未接入默认正文工具，不代表复杂表格、合并单元格等已验收。",
+  "native_im_markdown_observations": "表格与cite可转为可见文字/链接，但grid段落粘连且sub-page-list未转换；未改为默认格式。"
+}

@@ -106,7 +106,7 @@ class StructureChecks(unittest.TestCase):
         self.assertEqual(states, {"@opening": False, "parent": True, "child": True, "leaf": False, "other": False})
         # 叶子中含容器内 H1，但它不是可独立选择的子章节。
         self.assertEqual(deep["outline"][1]["children"][0]["children"][0]["children"], [])
-        self.assertEqual(len(self.calls), 2)
+        self.assertEqual(len(self.calls), 1)  # 改变目录深度仍复用同一个完整文章快照。
 
     def test_parent_metadata_describes_selected_unit(self):
         """局部查询单独说明起点有无子章，起点不混入树、不占展开层数。"""
@@ -115,7 +115,7 @@ class StructureChecks(unittest.TestCase):
             self.assertEqual(result["parent"], {"unit_id": selected, "has_children": expected})
             self.assertNotIn(selected, [n["unit_id"] for n in section_nodes(result["outline"])])
         self.content = '<p id="body">无标题正文</p>'
-        result = Prototype(self.folder.name).structure("article", "@document")
+        result = Prototype(self.folder.name).structure("untitled-article", "@document")
         self.assertEqual(result["parent"], {"unit_id": "@document", "has_children": False})
         self.assertEqual(result["outline"], [])
 

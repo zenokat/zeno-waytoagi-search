@@ -1,0 +1,409 @@
+{
+  "recorded_at": "2026-10-25T12:01:17+08:00",
+  "source": "本轮真实只读链路；首次独立空缓存；其后按输入顺序共用同一文章缓存。",
+  "ttl_days": 7,
+  "scenarios": [
+    {
+      "name": "全文检索",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "keywords": [
+          "营销类"
+        ]
+      },
+      "output": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "revision": 116,
+        "keywords": [
+          "营销类"
+        ],
+        "match_tree": [
+          {
+            "unit_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "hits": [
+              {
+                "snippet_xml": "<fragment mode=\"range\" requested-end=\"RZlGdasitooU5QxDrYzcmtfAnNd\" requested-start=\"RZlGdasitooU5QxDrYzcmtfAnNd\"><table id=\"RZlGdasitooU5QxDrYzcmtfAnNd\"><colgroup><col width=\"181\"/><col width=\"191\"/><col width=\"295\"/><col width=\"235\"/><col width=\"343\"/></colgroup><tbody><tr><td><h3 id=\"Gxf9dOenNoZNp6xjbgccY9yVnuc\">全面解读</h3></td><td><h3 id=\"I4PHdt8kmollADx5wC9cypqPnVg\">营销类</h3></td><td><h3 id=\"Xu6jd83Bwo7w1JxHMQ4cdf30nAe\">投资和电商</h3></td><td><h3 id=\"TsH3dQnpwoeAXPxqao8cKeJ6ndh\">工具论文效率类</h3></td><td><h3 id=\"UO0idFuecovsdWxNKhCcuqDBn6e\">有趣类</h3></td></tr><tr><td><p id=\"RRckdugaGoEjqDxoBODcH5hJnnd\"><cite doc-id=\"QNOOwPTlRiziWikxPU2cqmUZnad\" file-type=\"wiki\" title=\"大仙课｜当飞书遇上 DeepSeek 们\" type=\"doc\"></cite></p><p id=\"AovSdBSVeoTpgUxRTGAcJuaPnmc\"><cite doc-id=\"VwCuwq4hsinGlwkGEhUc901TnMd\" file-type=\"wiki\" title=\"多模态识别模板非常多案例\" type=\"doc\"></cite></p><p id=\"CUObdzMHGoMNO3xDdbocgA0XnCc\"><cite doc-id=\"RITOwCklZiIAtbka4dVcZjwRnGf\" file-type=\"wiki\" title=\"字段捷径示例\" type=\"doc\"></cite></p><p id=\"XUDDdEBeRoZZGvxlC53cXSGrnLf\"></p></td><td><p id=\"TEXFd6SMvoCV4dxYU8scafPMnCg\"><cite doc-id=\"U6t8w9VM5iz6sxkid4TcLbaDnrh\" file-type=\"wiki\" title=\"小红书 AI 爆款印钞机\" type=\"doc\"></cite></p><p id=\"VUWud384yoIBF7x0Dw0c0alfnCc\"><cite doc-id=\"EvXow4rFQiIIFgktPi6cATLJnkN\" file-type=\"wiki\" title=\"推特文案转小红书和微博\" type=\"doc\"></cite></p><p id=\"JHI3dBENDowMwLxYy8tcjWtenKh\"><cite doc-id=\"Pj5JwBR40iigNbkD8gVchn2MnWe\" file-type=\"wiki\" title=\"点子变视频\" type=\"doc\"></cite></p><p id=\"OD4ddAjeQoxtmFxFTgYcqMLVnKe\"><cite doc-id=\"GohCwGlmpirZmXkbe3Fclp6HnXe\" file-type=\"wiki\" title=\"营销模板\" type=\"doc\"></cite></p><p id=\"Q8TUd2PdBoxXZsxNPPIcviQ6nOd\"><cite doc-id=\"FSezwUK3oiDS09kgCWccNJ8Mngq\" file-type=\"wiki\" title=\"推特文案转小红书和微博\" type=\"doc\"></cite></p><p id=\"JW95dpblvohbzCxr9R5c9DSmnEc\"></p></td><td><p id=\"B4IRdsKnZoYlDIxHCAkcxknfntd\"><cite doc-id=\"I5oEwbNJqinMQBk0m2fcDxmnnGg\" file-type=\"wiki\" title=\"Deepseek｜投资第二大脑\" type=\"doc\"></cite></p><p id=\"Y6IzdEax3oG5xGxfXfFcsf8Wnhg\"><cite doc-id=\"CS4Zw3Z1tiXDfnkE9eocwOc3n3f\" file-type=\"wiki\" title=\"电商商品策划 DeepSeek大师版｜一键领取同款多维表格模板\" type=\"doc\"></cite></p><p id=\"God9dgfdfomKQHxFP51cBxECnTd\"><cite doc-id=\"UlPAwVtICiOQT8kSNInc4fxCnwU\" file-type=\"wiki\" title=\"短剧小说 IP 版权剧本库\" type=\"doc\"></cite></p><p id=\"FbsLdnl6Bo1F97xnjygcYE1OnZc\"><cite doc-id=\"HTqPwubRLiKyZvkXUKVc173Wndc\" file-type=\"wiki\" title=\"商品链接分析工具\" type=\"doc\"></cite></p><p id=\"TyXadW3TuobJaNxdQYkctgKcnFg\"><cite doc-id=\"T0WtwlAsviou37kMJ2JcfnWNn7e\" file-type=\"wiki\" title=\"超级直播团队\" type=\"doc\"></cite></p><p id=\"GPU5dqE60o1xI1xazRecfvtOnAe\"><cite doc-id=\"TTYuwsON8ioNCTkQEjIctjWZnls\" file-type=\"wiki\" title=\"电商产品-上架规划\" type=\"doc\"></cite></p></td><td><p id=\"FObhd9gFdok20yxp5blcRS1ln8g\"><cite doc-id=\"LDtjwh1cpif1PEk9qTHcz5avnId\" file-type=\"wiki\" title=\"收藏内容整理\" type=\"doc\"></cite></p><p id=\"LBB2dzCf1omhAJxDPmIcQPAWnLb\"><cite doc-id=\"Hzp7wN0ZVigIaBkC24ecaTfLnVh\" file-type=\"wiki\" title=\"AI文献速读神器\" type=\"doc\"></cite></p><p id=\"QY3odfXhBoBabQxUUkmcX9B8nyc\"><cite doc-id=\"DvXIw5fcyivgEYk52njcx400nKh\" file-type=\"wiki\" title=\"论文分析工具\" type=\"doc\"></cite></p><p id=\"UVGXdFr2mohErCxrALbczctNn3c\"><cite doc-id=\"Ed8mwhqDeipHEjk7SDkcOFyOnnb\" file-type=\"wiki\" title=\"Google/Baidu SEO 素材生成\" type=\"doc\"></cite></p><p id=\"WRZ1daBUtogPA0xkKuzcwu2unkf\"><cite doc-id=\"Zko5wg5hPiOHdZkCqz6cGl0Kn7d\" file-type=\"wiki\" title=\"DeepSeek10倍速使用模板\" type=\"doc\"></cite></p><p id=\"Z2z2dQWUcognNTxa43gcSjEln2c\"><cite doc-id=\"TbZSwxWnui5Tehk1kl2coI18nAf\" file-type=\"wiki\" title=\"Deepseek批处理模版\" type=\"doc\"></cite></p></td><td><p id=\"Nr1zdKWzUoPfTLxQaIjcvNkKnlf\"><cite doc-id=\"TR8CwvGc2iJggBkxRfWcA1Klnke\" file-type=\"wiki\" title=\"🔮 赛博占卜师模板 - DeepSeek字段\" type=\"doc\"></cite></p><p id=\"NdV1dmEX5ocV9CxjLvPcWGHMnqf\"><cite doc-id=\"OrTDwMahkiT6zXktTfocLX6unEf\" file-type=\"wiki\" title=\"2025 新年 Flag 模板 - DeepSeek\" type=\"doc\"></cite></p><p id=\"F4Cmd0TKGo2SvHxgSa8c8Nkln6f\"><cite doc-id=\"S73sw9Z4fiEhyEk5RD0czYT8nof\" file-type=\"wiki\" title=\"头像暴露了你的性格\" type=\"doc\"></cite></p><p id=\"AiJydAe5io3GfxxlErJcEBAJnSb\"><cite doc-id=\"Gn35w5mNjiFYPykcb4rcnVfbnih\" file-type=\"wiki\" title=\"《AI帮我做随访》我用飞书AI多维表格做了个智能患者随访系统！\" type=\"doc\"></cite></p><p id=\"Ss83d6iHmoSwxmxlyTCccNJvnZd\"><cite doc-id=\"Gk9pwXgoqi4vDWkVRyTcw3Fknbf\" file-type=\"wiki\" title=\"💥 把「碎碎念」秒变爆款的「AI 灵感印钞机」\" type=\"doc\"></cite></p></td></tr></tbody></table></fragment>",
+                "container_expanded": true
+              }
+            ],
+            "children": [],
+            "title": "附上宝藏飞书多维表格模板"
+          }
+        ]
+      },
+      "total_seconds": 2.793,
+      "local_result": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-qjo8ujyp/result.json",
+      "diagnostics": {
+        "article_cache": [
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "keyword",
+            "format": "xml",
+            "max_depth": -1,
+            "keyword": "营销类",
+            "context_before": 0,
+            "context_after": 0,
+            "cache_hit": false,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          },
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "full",
+            "format": "xml",
+            "max_depth": -1,
+            "cache_hit": false,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          },
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "range",
+            "format": "xml",
+            "max_depth": -1,
+            "start_block_id": "RZlGdasitooU5QxDrYzcmtfAnNd",
+            "end_block_id": "RZlGdasitooU5QxDrYzcmtfAnNd",
+            "cache_hit": false,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          }
+        ]
+      },
+      "native": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "--scope",
+            "keyword",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--keyword",
+            "营销类",
+            "--context-before",
+            "0",
+            "--context-after",
+            "0",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "按 OR 关键词查找文内命中块或容器节选，随后补齐所属章节链。",
+          "seconds": 0.764,
+          "elapsed_seconds": 0.769
+        },
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "--scope",
+            "full",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取完整 XML 与块标识，建立真实章节层级、块归属及完整章节边界。",
+          "seconds": 1.402,
+          "elapsed_seconds": 2.173
+        },
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "--scope",
+            "range",
+            "--doc-format",
+            "xml",
+            "--detail",
+            "with-ids",
+            "--max-depth",
+            "-1",
+            "--start-block-id",
+            "RZlGdasitooU5QxDrYzcmtfAnNd",
+            "--end-block-id",
+            "RZlGdasitooU5QxDrYzcmtfAnNd",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "按命中的顶层容器标识补读完整容器，避免只交付表格或容器节选。",
+          "seconds": 0.616,
+          "elapsed_seconds": 2.791
+        }
+      ]
+    },
+    {
+      "name": "篇章结构获取",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f"
+      },
+      "output": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "revision": 116,
+        "parent": null,
+        "outline": [
+          {
+            "unit_id": "@opening",
+            "kind": "opening",
+            "has_children": false,
+            "children": []
+          },
+          {
+            "unit_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "kind": "section",
+            "has_children": false,
+            "children": [],
+            "title": "附上宝藏飞书多维表格模板"
+          }
+        ]
+      },
+      "total_seconds": 0.002,
+      "local_result": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-fwizlpcr/result.json",
+      "diagnostics": {
+        "article_cache": [
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "full",
+            "format": "xml",
+            "max_depth": -1,
+            "cache_hit": true,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          }
+        ],
+        "structure_units": [
+          {
+            "id": "@opening",
+            "depth": 1,
+            "parents": [],
+            "start": 0,
+            "end": 35,
+            "kind": "opening"
+          },
+          {
+            "id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "title": "附上宝藏飞书多维表格模板",
+            "rank": 3,
+            "depth": 1,
+            "start": 35,
+            "end": 42,
+            "parents": [],
+            "kind": "section"
+          }
+        ]
+      },
+      "native": []
+    },
+    {
+      "name": "正文读取",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "unit_ids": [
+          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+        ]
+      },
+      "output": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "revision": 116,
+        "markdown_path": "/private/tmp/zen43-body-0u3or2vd/body.md",
+        "actual_ranges": [
+          {
+            "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+            "top_level_blocks": 7,
+            "unit_ids": [
+              "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+            ]
+          }
+        ],
+        "images": {
+          "Efipb3YjsooLUKxegPrc02G4nzf": {
+            "content_type": "image/png",
+            "saved_path": "/private/tmp/zen43-body-0u3or2vd/Efipb3YjsooLUKxegPrc02G4nzf.png",
+            "size_bytes": 1019911
+          }
+        },
+        "warnings": [],
+        "scope": "selected_sections"
+      },
+      "total_seconds": 1.781,
+      "local_result": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-0z8j45xc/result.json",
+      "diagnostics": {
+        "article_cache": [
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "full",
+            "format": "xml",
+            "max_depth": -1,
+            "cache_hit": true,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          },
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "range",
+            "format": "markdown",
+            "max_depth": -1,
+            "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+            "cache_hit": false,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          }
+        ],
+        "article_images": [
+          {
+            "token": "Efipb3YjsooLUKxegPrc02G4nzf",
+            "cache_hit": false
+          }
+        ]
+      },
+      "native": [
+        {
+          "command": [
+            "docs",
+            "+fetch",
+            "--doc",
+            "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "--scope",
+            "range",
+            "--doc-format",
+            "markdown",
+            "--detail",
+            "simple",
+            "--max-depth",
+            "-1",
+            "--start-block-id",
+            "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "--end-block-id",
+            "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "读取计算后的完整章节区间，取得 Markdown 正文。",
+          "seconds": 0.909,
+          "elapsed_seconds": 0.911
+        },
+        {
+          "command": [
+            "docs",
+            "+media-preview",
+            "--token",
+            "Efipb3YjsooLUKxegPrc02G4nzf",
+            "--output",
+            "/private/tmp/zen43-body-0u3or2vd/Efipb3YjsooLUKxegPrc02G4nzf",
+            "--as",
+            "user",
+            "--format",
+            "json"
+          ],
+          "purpose": "下载所选正文中引用的这一张图片，取得可嵌入 Markdown 的本地绝对路径。",
+          "seconds": 0.863,
+          "elapsed_seconds": 1.779
+        }
+      ]
+    },
+    {
+      "name": "相同章节再次读取",
+      "input": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "unit_ids": [
+          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+        ]
+      },
+      "output": {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "revision": 116,
+        "markdown_path": "/private/tmp/zen43-body-1b7gpa_0/body.md",
+        "actual_ranges": [
+          {
+            "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+            "top_level_blocks": 7,
+            "unit_ids": [
+              "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+            ]
+          }
+        ],
+        "images": {
+          "Efipb3YjsooLUKxegPrc02G4nzf": {
+            "content_type": "image/png",
+            "saved_path": "/private/tmp/zen43-body-0u3or2vd/Efipb3YjsooLUKxegPrc02G4nzf.png",
+            "size_bytes": 1019911
+          }
+        },
+        "warnings": [],
+        "scope": "selected_sections"
+      },
+      "total_seconds": 0.003,
+      "local_result": "/private/var/folders/7t/2wfvxcq56n18tryc7tjzbbrw0000gn/T/zen43-run-dcvvqd_n/result.json",
+      "diagnostics": {
+        "article_cache": [
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "full",
+            "format": "xml",
+            "max_depth": -1,
+            "cache_hit": true,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          },
+          {
+            "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+            "scope": "range",
+            "format": "markdown",
+            "max_depth": -1,
+            "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+            "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+            "cache_hit": true,
+            "revision": 116,
+            "snapshot_fetched_at": 1792900873.627402,
+            "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+          }
+        ],
+        "article_images": [
+          {
+            "token": "Efipb3YjsooLUKxegPrc02G4nzf",
+            "cache_hit": true
+          }
+        ]
+      },
+      "native": []
+    }
+  ],
+  "checks": {
+    "structure_after_locate_zero_requests": true,
+    "body_no_repeated_full_xml": true,
+    "same_body_again_zero_requests": true,
+    "same_revision_all_steps": true
+  },
+  "limits": "缓存按实际格式、范围、关键词复用；新格式或新关键词仍需首次获取。七天内不自动探测更新，遇到新修订才失效旧快照。单机单用户原型。"
+}
