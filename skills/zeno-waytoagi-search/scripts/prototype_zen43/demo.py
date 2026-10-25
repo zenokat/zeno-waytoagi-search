@@ -15,16 +15,16 @@ from prototype import Prototype, SAMPLE, section_model, write_json, xml_root
 from monthly_logs import MonthlyLogs, HISTORY_TTL_SECONDS
 
 
-def assert_images(result):
-    """核对 result 的图片已落盘并嵌入 Markdown；返回本次图片数，任一失败抛断言异常。"""
+def assert_images(result, diagnostics):
+    """按 result 正文与内部 diagnostics 核对图片已落盘并嵌入；返回图片数，不向业务返回补字段。"""
     content = Path(result["markdown_path"]).read_text()
     assert not result["warnings"], result["warnings"]
-    for item in result["images"].values():
+    for item in diagnostics["body_images"].values():
         path = Path(item["saved_path"]).resolve()
         assert path.is_file() and path.stat().st_size > 0
         assert str(path) in content
     assert "https://feishu.cn/file/" not in content
-    return len(result["images"])
+    return len(diagnostics["body_images"])
 
 
 def compact_result(result):
@@ -293,24 +293,24 @@ def run_demo(output):
     checks["全文检索无命中"] = "真实空结果只发起 1 次 keyword 请求，没有全文预读"
 
     parent = next(u for u in structure_units if u["id"] == children[0]["parents"][0])
-    body, _ = capture("正文读取", "选择父章和其中子章，重叠只输出一次；只获取选区里的图片并嵌入本地路径。",
+    body, body_context = capture("正文读取", "选择父章和其中子章，重叠只输出一次；只获取选区里的图片并嵌入本地路径。",
         {"article": SAMPLE, "unit_ids": [parent["id"], children[0]["id"]]}, "read",
         article=SAMPLE, unit_ids=[parent["id"], children[0]["id"]])
     assert len(body["actual_ranges"]) == 1
-    assert body["actual_ranges"][0]["top_level_blocks"] == parent["end"] - parent["start"]
-    checks["多章合并与图片"] = f"重叠合并为一段，{assert_images(body)} 张图片已落盘并嵌入"
+    assert body_context.diagnostics["body_ranges"][0]["top_level_blocks"] == parent["end"] - parent["start"]
+    checks["多章合并与图片"] = f"重叠合并为一段，{assert_images(body, body_context.diagnostics)} 张图片已落盘并嵌入"
 
-    bounded, _ = capture("完整章节范围", "终点虽然是章节标题，内部端点扩到该章末尾；不是读到终点标题就停止。",
+    bounded, bounded_context = capture("完整章节范围", "终点虽然是章节标题，内部端点扩到该章末尾；不是读到终点标题就停止。",
         {"article": SAMPLE, "start_unit_id": children[0]["id"], "end_unit_id": children[1]["id"]}, "read",
         article=SAMPLE, start_unit_id=children[0]["id"], end_unit_id=children[1]["id"])
-    assert bounded["actual_ranges"][0]["top_level_blocks"] == children[1]["end"] - children[0]["start"]
-    assert bounded["actual_ranges"][0]["end_block_id"] != children[1]["id"]
-    assert_images(bounded)
+    assert bounded_context.diagnostics["body_ranges"][0]["top_level_blocks"] == children[1]["end"] - children[0]["start"]
+    assert bounded_context.diagnostics["body_ranges"][0]["end_block_id"] != children[1]["id"]
+    assert_images(bounded, bounded_context.diagnostics)
     checks["范围终点"] = "包括终章正文和子章节"
 
-    complete, _ = capture("全文读取", "无章节参数读取全部正文，并自动获取文内图片；得到文件不代表 Agent 已读完。",
+    complete, complete_context = capture("全文读取", "无章节参数读取全部正文，并自动获取文内图片；得到文件不代表 Agent 已读完。",
         {"article": SAMPLE}, "read", article=SAMPLE)
-    checks["全文与图片"] = f"{complete['actual_ranges'][0]['top_level_blocks']} 个顶层块，{assert_images(complete)} 张图片"
+    checks["全文与图片"] = f"{complete_context.diagnostics['body_ranges'][0]['top_level_blocks']} 个顶层块，{assert_images(complete, complete_context.diagnostics)} 张图片"
     checks["验证时间"] = datetime.now().astimezone().isoformat(timespec="seconds")
     manifest = {"checks": checks, "scenarios": scenarios}
     write_json(output / "evidence.json", manifest)

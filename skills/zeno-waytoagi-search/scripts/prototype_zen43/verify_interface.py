@@ -64,7 +64,8 @@ class InterfaceChecks(unittest.TestCase):
         self.assertEqual(unit_id, located["match_tree"][0]["children"][0]["unit_id"])
         result = context.read("article", unit_ids=[unit_id])
         self.cleanup_body(result)
-        self.assertEqual(result["actual_ranges"], [{"start_block_id": "a", "end_block_id": "body_a", "top_level_blocks": 2, "unit_ids": ["a"]}])
+        self.assertEqual(result["actual_ranges"], [{"unit_ids": ["a"]}])
+        self.assertNotIn("images", result)
         self.assertEqual([c["--scope"] for c in self.calls], ["keyword", "full", "range"])
 
     def test_cli_parent_id_and_unit_ids(self):
@@ -82,8 +83,20 @@ class InterfaceChecks(unittest.TestCase):
         """命令行范围新名称仍扩展到终章正文末尾；不误读成原生块端点。"""
         result = self.invoke("read", "--start-unit-id", "a", "--end-unit-id", "b")
         self.cleanup_body(result)
-        self.assertEqual(result["actual_ranges"][0]["end_block_id"], "body_b")
+        self.assertNotIn("end_block_id", result["actual_ranges"][0])
+        self.assertEqual(self.calls[-1]["--end-block-id"], "body_b")
         self.assertEqual(result["actual_ranges"][0]["unit_ids"], ["a", "b"])
+
+    def test_cli_failure_does_not_expose_backend_or_evidence_path(self):
+        """来源失败只交付产品层错误；底层 CLI、块标识与证据目录留在内部。"""
+        output = io.StringIO()
+        with patch.object(daily, "run_cli", side_effect=ValueError("CLI_FAILED: block_id invalid")), patch(
+            "sys.argv", ["prototype.py", "read", "--cache-dir", self.folder.name]), redirect_stdout(output):
+            self.assertEqual(main(), 2)
+        result = json.loads(output.getvalue())
+        self.assertNotIn("evidence_dir", result)
+        self.assertNotIn("CLI", result["error"])
+        self.assertNotIn("block_id", result["error"])
 
 
 if __name__ == "__main__":

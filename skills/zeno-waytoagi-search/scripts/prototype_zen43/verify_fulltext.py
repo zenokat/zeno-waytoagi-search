@@ -67,9 +67,9 @@ class FulltextChecks(unittest.TestCase):
         result = Prototype(self.folder.name).locate("article", ["关键词"])
         self.assertEqual(len(result["match_tree"]), 1)
         parent = result["match_tree"][0]
-        self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in parent["hits"]], ["intro"])
+        self.assertEqual(["".join(xml_root(h["snippet_xml"]).itertext()) for h in parent["hits"]], ["父章命中"])
         self.assertEqual([s["unit_id"] for s in parent["children"]], ["a", "c"])
-        self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in parent["children"][0]["hits"]], ["a1", "a2"])
+        self.assertEqual(["".join(xml_root(h["snippet_xml"]).itertext()) for h in parent["children"][0]["hits"]], ["早片段", "晚片段"])
         self.assertNotIn("section_chain", json.dumps(result))
 
     def test_no_heading_has_one_reading_unit(self):
@@ -81,7 +81,7 @@ class FulltextChecks(unittest.TestCase):
         section = result["match_tree"][0]
         self.assertEqual(section["unit_id"], "@document")
         self.assertNotIn("title", section)
-        self.assertEqual([xml_root(h["snippet_xml"])[0].get("id") for h in section["hits"]], ["first", "last"])
+        self.assertEqual(["".join(xml_root(h["snippet_xml"]).itertext()) for h in section["hits"]], ["前文", "后文"])
 
     def test_changed_revision_is_rejected(self):
         """关键词与结构修订不一致时拒绝拼接；预期抛出 ValueError。"""
@@ -108,6 +108,7 @@ class FulltextChecks(unittest.TestCase):
         for node in section_nodes(result["match_tree"]):
             for hit in node["hits"]:
                 self.assertNotIn("block_id", hit)
+                self.assertNotIn('id="', hit["snippet_xml"])
         self.assertIn("snippet_xml", result["match_tree"][0]["hits"][0])
 
 

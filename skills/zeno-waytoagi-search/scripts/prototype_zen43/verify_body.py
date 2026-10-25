@@ -44,29 +44,32 @@ class BodyImageChecks(unittest.TestCase):
 
     def read_body(self):
         """调用真实正文读取流程并登记临时文件清理；返回业务结果与文件原文。"""
-        result = Prototype(self.folder.name).read("article", unit_ids=["chapter"])
+        context = Prototype(self.folder.name)
+        result = context.read("article", unit_ids=["chapter"])
         self.addCleanup(shutil.rmtree, Path(result["markdown_path"]).parent)
-        return result, Path(result["markdown_path"]).read_text()
+        return result, Path(result["markdown_path"]).read_text(), context
 
     def test_container_image_and_markdown_image_share_local_file(self):
         """相同图片的 HTML src 与 Markdown URL 都指向本地文件，正文提到的 token 保持不变。"""
-        result, body = self.read_body()
-        saved = result["images"]["image-token"]["saved_path"]
+        result, body, context = self.read_body()
+        saved = context.diagnostics["body_images"]["image-token"]["saved_path"]
         self.assertTrue(Path(saved).is_file())
-        self.assertIn('src="' + saved + '"', body)
+        self.assertEqual(body.count("](" + saved + ")"), 2)
         self.assertIn("![](" + saved + ")", body)
         self.assertIn("正文提到 image-token。", body)
         self.assertEqual(self.downloads, 1)
         self.assertEqual(result["warnings"], [])
+        self.assertNotIn("images", result)
+        self.assertNotIn("<grid", body)
+        self.assertNotIn('id="', body)
 
     def test_container_image_failure_is_marked_in_place(self):
         """下载失败时两种引用在原位置明确标记，并保留警告，不返回无法读取的原生 src。"""
         self.failed = True
-        result, body = self.read_body()
-        self.assertIn('src="图片获取失败:image-token"', body)
-        self.assertIn("![](图片获取失败:image-token)", body)
+        result, body, context = self.read_body()
+        self.assertEqual(body.count("[图片获取失败]"), 2)
         self.assertNotIn('src="image-token"', body)
-        self.assertEqual(result["images"]["image-token"]["status"], "failed")
+        self.assertEqual(context.diagnostics["body_images"]["image-token"]["status"], "failed")
         self.assertEqual(len(result["warnings"]), 1)
 
 

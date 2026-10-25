@@ -1,0 +1,179 @@
+{
+  "recorded_at": "2026-10-25T12:34:27+08:00",
+  "source": "18 个原场景使用已保存真实响应重放；另 1 个容器正文实际执行并复用已有缓存，0 新来源请求。",
+  "replayed_scenarios": [
+    {
+      "name": "篇章结构获取",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "全文检索",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "单词 MarkItDown",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "单词 MinerU",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "仅命中标题",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "仅局部正文命中",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "表格单行命中",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "全文检索无命中",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "正文读取",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "完整章节范围",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "全文读取",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "整篇默认一层",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "局部默认一层",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "局部展开两层",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "叶子章节结构",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "开篇正文结构",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "无标题文章结构",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    },
+    {
+      "name": "无标题单位下钻",
+      "public_json_audit": true,
+      "only_confirmed_presentation_changes": true
+    }
+  ],
+  "unchanged_first_two_tools": 13,
+  "container_result": {
+    "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+    "revision": 116,
+    "markdown_path": "/private/tmp/zen43-body-7ab8swy4/body.md",
+    "actual_ranges": [
+      {
+        "unit_ids": [
+          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+        ]
+      }
+    ],
+    "warnings": [],
+    "scope": "selected_sections"
+  },
+  "container_diagnostics": {
+    "article_cache": [
+      {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "scope": "full",
+        "format": "xml",
+        "max_depth": -1,
+        "cache_hit": true,
+        "revision": 116,
+        "snapshot_fetched_at": 1792900873.627402,
+        "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+      },
+      {
+        "article": "https://waytoagi.feishu.cn/wiki/MiOcwgmQqiCEf7kMUN0c53j2n8f",
+        "scope": "range",
+        "format": "markdown",
+        "max_depth": -1,
+        "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+        "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+        "cache_hit": true,
+        "revision": 116,
+        "snapshot_fetched_at": 1792900873.627402,
+        "cache_path": "/private/tmp/zen43-article-cache-demo-20261025/PROTOTYPE-wipe-me-cache/article-f4f64656cd77e42ca8cd4c3e.json"
+      }
+    ],
+    "article_images": [
+      {
+        "token": "Efipb3YjsooLUKxegPrc02G4nzf",
+        "cache_hit": true
+      }
+    ],
+    "body_ranges": [
+      {
+        "start_block_id": "Fbu3dBepXo7sQRxL4TncS6GpnPk",
+        "end_block_id": "SCG6dj4YgoKnSuxJi4Vck1Sdnrc",
+        "top_level_blocks": 7,
+        "unit_ids": [
+          "Fbu3dBepXo7sQRxL4TncS6GpnPk"
+        ]
+      }
+    ],
+    "body_images": {
+      "Efipb3YjsooLUKxegPrc02G4nzf": {
+        "content_type": "image/png",
+        "saved_path": "/private/tmp/zen43-body-0u3or2vd/Efipb3YjsooLUKxegPrc02G4nzf.png",
+        "size_bytes": 1019911
+      }
+    }
+  },
+  "container_markdown": "### 附上宝藏飞书多维表格模板\n\n| 全面解读 | 营销类 | 投资和电商 | 工具论文效率类 | 有趣类 |\n| --- | --- | --- | --- | --- |\n| [大仙课｜当飞书遇上 DeepSeek 们](https://waytoagi.feishu.cn/wiki/QNOOwPTlRiziWikxPU2cqmUZnad)<br><br><br>[多模态识别模板非常多案例](https://waytoagi.feishu.cn/wiki/VwCuwq4hsinGlwkGEhUc901TnMd)<br><br><br>[字段捷径示例](https://waytoagi.feishu.cn/wiki/RITOwCklZiIAtbka4dVcZjwRnGf) | [小红书 AI 爆款印钞机](https://waytoagi.feishu.cn/wiki/U6t8w9VM5iz6sxkid4TcLbaDnrh)<br><br><br>[推特文案转小红书和微博](https://waytoagi.feishu.cn/wiki/EvXow4rFQiIIFgktPi6cATLJnkN)<br><br><br>[点子变视频](https://waytoagi.feishu.cn/wiki/Pj5JwBR40iigNbkD8gVchn2MnWe)<br><br><br>[营销模板](https://waytoagi.feishu.cn/wiki/GohCwGlmpirZmXkbe3Fclp6HnXe)<br><br><br>[推特文案转小红书和微博](https://waytoagi.feishu.cn/wiki/FSezwUK3oiDS09kgCWccNJ8Mngq) | [Deepseek｜投资第二大脑](https://waytoagi.feishu.cn/wiki/I5oEwbNJqinMQBk0m2fcDxmnnGg)<br><br><br>[电商商品策划 DeepSeek大师版｜一键领取同款多维表格模板](https://waytoagi.feishu.cn/wiki/CS4Zw3Z1tiXDfnkE9eocwOc3n3f)<br><br><br>[短剧小说 IP 版权剧本库](https://waytoagi.feishu.cn/wiki/UlPAwVtICiOQT8kSNInc4fxCnwU)<br><br><br>[商品链接分析工具](https://waytoagi.feishu.cn/wiki/HTqPwubRLiKyZvkXUKVc173Wndc)<br><br><br>[超级直播团队](https://waytoagi.feishu.cn/wiki/T0WtwlAsviou37kMJ2JcfnWNn7e)<br><br><br>[电商产品-上架规划](https://waytoagi.feishu.cn/wiki/TTYuwsON8ioNCTkQEjIctjWZnls) | [收藏内容整理](https://waytoagi.feishu.cn/wiki/LDtjwh1cpif1PEk9qTHcz5avnId)<br><br><br>[AI文献速读神器](https://waytoagi.feishu.cn/wiki/Hzp7wN0ZVigIaBkC24ecaTfLnVh)<br><br><br>[论文分析工具](https://waytoagi.feishu.cn/wiki/DvXIw5fcyivgEYk52njcx400nKh)<br><br><br>[Google/Baidu SEO 素材生成](https://waytoagi.feishu.cn/wiki/Ed8mwhqDeipHEjk7SDkcOFyOnnb)<br><br><br>[DeepSeek10倍速使用模板](https://waytoagi.feishu.cn/wiki/Zko5wg5hPiOHdZkCqz6cGl0Kn7d)<br><br><br>[Deepseek批处理模版](https://waytoagi.feishu.cn/wiki/TbZSwxWnui5Tehk1kl2coI18nAf) | [🔮 赛博占卜师模板 - DeepSeek字段](https://waytoagi.feishu.cn/wiki/TR8CwvGc2iJggBkxRfWcA1Klnke)<br><br><br>[2025 新年 Flag 模板 - DeepSeek](https://waytoagi.feishu.cn/wiki/OrTDwMahkiT6zXktTfocLX6unEf)<br><br><br>[头像暴露了你的性格](https://waytoagi.feishu.cn/wiki/S73sw9Z4fiEhyEk5RD0czYT8nof)<br><br><br>[《AI帮我做随访》我用飞书AI多维表格做了个智能患者随访系统！](https://waytoagi.feishu.cn/wiki/Gn35w5mNjiFYPykcb4rcnVfbnih)<br><br><br>[💥 把「碎碎念」秒变爆款的「AI 灵感印钞机」](https://waytoagi.feishu.cn/wiki/Gk9pwXgoqi4vDWkVRyTcw3Fknbf) |\n\n**第 1 栏**\n\n🤖2月16日8:00直播\n\n**直播内容：**\n\n大仙小灶｜飞书多维表格 x DeepSeek 联动深度教学\n\n**核心价值：**\n\n1. 1 小时的直播太短？3 小时给你讲得明明白白\n2. 只要 14 个字，先拿捏飞书多维表格，踏上实战 AI 之路\n3. 3 大步骤 + 4 大场景，人人带走一套实用 AI 系统\n4. 结合实操演示，大仙一次性解答关键的共性问题\n\n文档地址\n\n[【AI 直播课】飞书多维表格 x DeepSeek 联动深度教学](https://waytoagi.feishu.cn/wiki/FEswwHSnriJAh2kduSNcFnXVnse)\n\n回放：[大仙加场：飞书多维表格 x DeepSeek R1 联动教学](https://larkcommunity.feishu.cn/minutes/obcnrhf4773c84gvr2mn3271)\n\n**第 2 栏**\n\n![图片展示的是飞书多维表格与DeepSeek联动深度教学的宣传海报。海报上方有飞书和WaytoAGI的标识，中间以白色大字写着“多维表格 x DeepSeek 深度教学”。下方列出教学要点，包括3大步骤、4大场景、14个字，称人人可带走一套实用AI系统，还有实操演示和关键问题解答，强调3小时讲明白。右侧是主持人王大仙的照片及姓名。底部有一个蓝色的“点击观看直播”按钮。该图片与文档中提及的飞书多维表格和DeepSeek联动教学内容相呼应。](/private/tmp/zen43-body-0u3or2vd/Efipb3YjsooLUKxegPrc02G4nzf.png)\n\n**子页面引用（未读取正文）**\n\n- [「WaytoAGI 晚 8 共学」打开好玩又强大的豆包 4.0](https://waytoagi.feishu.cn/base/QzysbrE9JagdIlshp5qc0Llanth)\n- [电商视觉“闪电”工作流 - 作者：Sunkim](https://waytoagi.feishu.cn/base/SUUAbclPzazB5QsuCQ7clY1WnBd)\n- [📢 “飞书直播大讲堂” 课程表与培训材料合集](https://waytoagi.feishu.cn/docx/Cgr3drRtcot7oDxyOUKcjoWJn9d)\n- [飞书多维表格AI共学-解锁更强大的豆包 2024年12月21日](https://waytoagi.feishu.cn/docx/Ni8sdJRoKo2BySxf4gvcYGQMn9e)\n- [大仙课｜当飞书遇上 DeepSeek 们](https://waytoagi.feishu.cn/docx/LEspdXmLqohIqhxSenfcfONPnVh)\n- [《AI帮我做随访》我用飞书AI多维表格做了个智能患者随访系统！](https://waytoagi.feishu.cn/docx/AWqAdX7OSoaBMlxFe5Rc5KPPn7e)\n- [多模态识别模板非常多案例](https://waytoagi.feishu.cn/base/HdE5bplUwaaXbysKSnVcRHM4nRc)\n- [小红书 AI 爆款印钞机](https://waytoagi.feishu.cn/base/SG5mbXheQaXUYXskqojcyFtlnH6)\n- [AI文献速读神器](https://waytoagi.feishu.cn/base/IxMzbNVPDaOITusdXUUcLUrrnmm)\n- [论文分析工具](https://waytoagi.feishu.cn/base/NpUvbis1Ja0fHts0a9XcLSWNnf4)\n- [推特文案转小红书和微博](https://waytoagi.feishu.cn/base/IjSsb1v6oav93RsoW1Gc66bmnRd)\n- [点子变视频](https://waytoagi.feishu.cn/base/F8iabMVTsaIfPVsPii1cKYHcnfc)\n- [营销模板](https://waytoagi.feishu.cn/base/XaL6bkokxa64Sqs2ComcAxP0nzd)\n- [收藏内容整理](https://waytoagi.feishu.cn/base/QQOzbqZwSaFZCpss3xwcqpAwnZc)\n- [字段捷径示例](https://waytoagi.feishu.cn/base/KqpFbXVaVarSxrsBQsbcTtUHnJc)\n- [DeepSeek R1 字段捷径说明文档 ](https://waytoagi.feishu.cn/docx/OYs2dQFf0o7tFSxkKqTcgIyenRb)\n- [💥 把「碎碎念」秒变爆款的「AI 灵感印钞机」 ](https://waytoagi.feishu.cn/base/KpzEb4nzaaPhhesbOYrcWjz6nhg)\n- [🔮 赛博占卜师模板 - DeepSeek字段](https://waytoagi.feishu.cn/base/HSXyb7xava5eqis6LKrcPOhYnjw)\n- [2025 新年 Flag 模板 - DeepSeek](https://waytoagi.feishu.cn/base/FZEQbqfFaa66IZssQJhcyhp2nYI)\n- [Deepseek｜投资第二大脑](https://waytoagi.feishu.cn/base/FkqHbkEA1aeK4hsGoL0ct31ln5g)\n- [电商商品策划 DeepSeek大师版｜一键领取同款多维表格模板](https://waytoagi.feishu.cn/docx/FscHdlhbDoAKj1xpLI0czWBintg)\n- [短剧小说 IP 版权剧本库](https://waytoagi.feishu.cn/base/AL2VbBLINaQ6WUs1OJAcxyoPn5s)\n- [Google/Baidu SEO 素材生成](https://waytoagi.feishu.cn/base/ExgVbpVyMaGgIrssCoscKHydnTc)\n- [DeepSeek10倍速使用模板](https://waytoagi.feishu.cn/base/Y6nbbCMPlamQRss7FiRcIlLonqg)\n- [Deepseek批处理模版](https://waytoagi.feishu.cn/base/IHkHbhZy7aowshs3W7acTqgwnRL)\n- [头像暴露了你的性格](https://waytoagi.feishu.cn/base/X6LCbzSc9aMvbLs4OckcR5H4nJe)\n- [推特文案转小红书和微博](https://waytoagi.feishu.cn/base/AIqNbiOdua7D7ssv2pScftHznGc)\n- [商品链接分析工具](https://waytoagi.feishu.cn/base/Her9b2qglaaej6shCVJcagRbnId)\n- [超级直播团队](https://waytoagi.feishu.cn/base/CCDEbbtf3aBsIdsvfTtcWg2SnTc)\n- [电商产品-上架规划](https://waytoagi.feishu.cn/base/N13zblI9UakrzxsNjbScvdGPnTf)\n- [影刀 RPA 抓取小红书热点进入飞书多维表格 ](https://waytoagi.feishu.cn/docx/LY4edHdFIokn8exuPhZcGfCOnkc)\n- [大仙小灶｜飞书多维表格 x DeepSeek 联动深度教学](https://waytoagi.feishu.cn/docx/IfzIdIxyHoZHIvxv0MWcejPmnZd)\n- [多维表格 MVP 俱乐部](https://waytoagi.feishu.cn/base/QJjVbOUhpaaBc2sWWoPctGmcnBe)\n- [批量生成AI视频！Vidu接入飞书多维表格，工作流思路解析与模板分享](https://waytoagi.feishu.cn/docx/InundilrXopIcyxZfSIcQMeQnih)\n- [向阳乔木：隐藏技巧：飞书多维表格开发AI工具](https://waytoagi.feishu.cn/docx/C9MEdbu1uouaVlxgnxbcmzxlnVh)\n- [【实战干货】从底层逻辑到实战案例，一文讲透飞书多维表格！](https://waytoagi.feishu.cn/docx/C4VKdFNxQoDl96x6FM7cFMapnvg)\n- [大仙课合集｜跟着王大仙，做飞书多维表格高手！](https://waytoagi.feishu.cn/docx/KOkVdaaNnoD1HxxVsrjcgl8enkc)\n- [上新了多维表格｜王大仙带你直击最新功能](https://waytoagi.feishu.cn/docx/OLSpdaunIoRI0WxdStAcGllknDh)\n- [认证之路｜你离业务高手，还差这 100 道题（玩命更新中）](https://waytoagi.feishu.cn/docx/YURmdW2b0ofT5pxGBzpclOnznnd)\n- [精选模板｜要抄就抄最好的作业](https://waytoagi.feishu.cn/docx/W9vudI56noHJZrxv4tycHb9qnNc)\n- [社区圈子｜一起做了不起的多维表格 Maker](https://waytoagi.feishu.cn/docx/QJYSdZiBtoSWboxH6facL1Wjn1d)\n- [大仙随笔｜关于做产品、做业务与做 AI](https://waytoagi.feishu.cn/docx/OtwxdVmzwoAeD3xb8GPcvw8Rnlh)\n- [问卷](https://waytoagi.feishu.cn/base/QNtmbEqJta6bpEsVwrvcHcGsn6g)\n- [「WaytoAGI 限时福利」打开好玩又强大的 即梦4.0](https://waytoagi.feishu.cn/base/K7aZbFswLav8Pbsd5cVclMmxn4Y)\n- [WaytoAGI 社区限时福利！人人都能用的 AI 神器，开启你的工作生活新时代 ！](https://waytoagi.feishu.cn/docx/QblxdXP07opZlHxMqhLc4qDLnum)\n- [【内测体验】飞书多维表格更新的AI自动化工作流，真的惊到我！](https://waytoagi.feishu.cn/docx/KXT4dn0sxop5nzxPNoscfI0TnGh)\n- [栗子智培：我用飞书搭了个“校园AI失物招领”，跑通了80%，也踩到了2个“坑”](https://waytoagi.feishu.cn/docx/JbshdIP6EoSK5Ix5VozcNyKCnWf)\n- [林月半子：做了半年自动化后,我才发现飞书多维表格解决的不是表格问题](https://waytoagi.feishu.cn/docx/JMnIdpEN6oiTOqxREqbc2TXdnCd)\n- [阿真：又一篇保姆级教程，献给飞书多维表格应用模式。](https://waytoagi.feishu.cn/docx/UYYLdWvXfoWaF1xBVTWcbywCnPf)\n- [万涂幻象专栏](https://waytoagi.feishu.cn/docx/SHRHdHIHjo3WIPxJc2wcCICmnt4)\n- [阿真：收藏没停过，学习没用过？三个工具提取视频文案变知识库和选题库！](https://waytoagi.feishu.cn/docx/EoRmdaUh0oKYhaxA67QcPnJtn5c)\n- [录音 09-18 飞书多维表格接入即梦4.0，今晚王大仙教你玩出花 WaytoAGI晚8点共学（智能纪要）](https://waytoagi.feishu.cn/docx/P8lRdIAKSowG76xOVrBcu7kQnIh)\n- [飞书入局多维表格AI，我却看到了一个更大的机会](https://waytoagi.feishu.cn/docx/JtLzdixzgoMW1HxRyd3cr5qInFg)\n",
+  "limits": "未做浏览器视觉验收；合并单元格保留去定位属性的语义 HTML，未知嵌入内容明确标记；正式旧版 Skill 未修改。",
+  "markdown_checks": {
+    "table_rows_including_header": 2,
+    "columns": 5,
+    "table_citations_preserved": 25,
+    "grid_columns": 2,
+    "grid_list_items_preserved": 4,
+    "subpage_references_preserved": 53,
+    "images": 1,
+    "raw_locator_attributes_in_body": false
+  },
+  "verification": {
+    "automated_checks": 99,
+    "dom_scenarios": 32,
+    "browser_visual_verification": false,
+    "body_json_only_product_fields": true,
+    "errors_without_cli_or_evidence_paths": true
+  }
+}

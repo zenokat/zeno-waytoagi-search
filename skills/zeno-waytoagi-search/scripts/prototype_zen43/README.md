@@ -56,7 +56,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_structure.py
 
 默认 depth=1，按实际父子关系计数；指定章节时从其下一层开始。`has_children` 在深度裁剪前根据完整结构计算：true 且 children 为空表示本次未展开，false 表示确实无子章节。局部查询的 `parent` 单独返回查询起点的 `unit_id` 与 `has_children`，不占层数；整篇查询为 null。叶子章节、开篇及无标题单位的局部查询返回空 outline 和 parent.has_children=false，仍可用原读取标识取正文。只将顶层块序列中的标题作为章节，容器里的标题不作为独立入口。
 
-统一命名已确认：全文检索返回 `match_tree`，篇章结构返回 `outline`；节点标识为 `unit_id`，结构查询起点输入为 `parent_id`，正文选择输入为 `unit_ids`，范围输入为 `start_unit_id` / `end_unit_id`。正文返回的实际选区中，读取单位标识列表也使用 `unit_ids`；原生端点 `start_block_id` / `end_block_id` 仍表示实际正文块边界。原型 Python 接口和 CLI 同步采用新名称；本轮不是生产接口兼容层。
+统一命名已确认：全文检索返回 `match_tree`，篇章结构返回 `outline`；节点标识为 `unit_id`，结构查询起点输入为 `parent_id`，正文选择输入为 `unit_ids`，范围输入为 `start_unit_id` / `end_unit_id`。正文返回的实际选区中，读取单位标识列表也使用 `unit_ids`；实际正文块端点只保存在内部诊断，不返回调用方。原型 Python 接口和 CLI 同步采用新名称；本轮不是生产接口兼容层。
 
 例如：先 `locate(article, keywords)` 取得 `match_tree` 中的 `unit_id`，再 `structure(article, parent_id=该标识, depth=1)` 取得 `outline`，最后 `read(article, unit_ids=[子章标识])` 读取正文。只改变字段和参数名称，命中、层级与完整章节边界保持。
 
@@ -70,9 +70,9 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/body_demo.py
 
 使用现有 `demo.html` 中的三个正文场景输入，仅重新联网执行正文读取；前四工具的 28 个场景对象、采集与重放说明、计时完整复用。`--base` 可选择已有 HTML，`--output` 可指定本次临时目录。输出新 HTML、`evidence.json`、`body-checks.json` 与逐命令计时，不自动覆盖仓库演示。
 
-审阅第五工具时，先查看实际业务 JSON，再看「实际读取范围」和「完整 Markdown 与原位置图片」。读取单位标识与正文块端点分开展示：例如范围输入的第二步章节标识是 `end_unit_id`，实际 `end_block_id` 扩到第二步末尾图片，而不是停在第二步标题。`actual_ranges[].unit_ids` 列出选区内所有单位，包括随父章取得的子章；不只是输入中选中的 ID。
+审阅第五工具时，先查看实际业务 JSON，再看「实际读取范围」和「完整 Markdown 与原位置图片」。调用方只需原样传递 `unit_id`：例如 `end_unit_id` 选择第二步时，工具内部负责读完第二步的正文和图片，不要求调用方知道块端点。`actual_ranges[].unit_ids` 列出选区内所有单位，包括随父章取得的子章；不只是输入中选中的 ID。
 
-本轮保留业务字段 `article/revision/markdown_path/actual_ranges/images/warnings/scope`；成功 CLI 直接返回该 JSON，不再包裹 `result/evidence_dir`。内部调用与诊断仍落在本地临时证据中。原生 Markdown 的 `<title>` 和局部 `<fragment>` 范围包装目前原样保留，尚未改变转换规则。
+当前正文业务字段为 `article/revision/markdown_path/actual_ranges/warnings/scope`；`actual_ranges` 每项只含 `unit_ids`。图片索引、块端点和块数量留在内部诊断。成功与失败输出均不返回证据目录；原生错误详情也留在诊断。正文移除范围包装，文档原标题转为加粗文本，容器优先转换为 Markdown。
 
 HTML 内嵌这三个场景的完整 Markdown 及下载图片快照，图片按 Markdown 引用位置展开，代码围栏内的示例不转换为图片。此区属于演示材料，不是新增工具返回字段；Markdown 文件仍保留图片本地绝对路径。HTML 脱离临时目录仍可审阅快照，但临时文件清除后 JSON 中的旧路径会失效。文字按 Markdown 原文显示，不执行其中 HTML 或链接；这不是 Markdown 排版保真验收。
 
@@ -105,13 +105,23 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_article_cache
 
 真实链路另存 `article-cache-checks.json`：容器文章空缓存全文检索 3 请求，随后结构 0、首次正文 2（新 Markdown + 图片）、再读同章 0，修订一致且正文相同。该账本的耗时与命令来自本轮真实调用；现有 `demo.html/timings.json` 保留缓存接入前的历史采集，不能拿旧计时描述新增缓存效果。`article_cache_demo.py` 默认生成新临时目录；手动指定 `--output` 时应使用新目录，避免混淆空缓存与暖缓存。
 
-## 正文返回精简与阅读形式提案
+## 已确认的产品层接口与 Markdown 优先规则
 
-以下尚未替换默认业务 JSON 或正文格式：建议将 `actual_ranges` 中的 `start_block_id/end_block_id/top_level_blocks` 留内部，只交付实际覆盖的 `unit_ids`；正文已包含图片路径时，JSON 不重复列 `images` 路径清单，仍保留素材失败等 `warnings`。现有字段先保持，等待审阅后收敛。
+用户已确认：Agent 通过五工具外层接口满足需求，读取与定位只认产品 `unit_id`，不要求接触底层 CLI 或解释块 ID。正文默认返回已精简，`actual_ranges` 中不再包含块端点和块数量，JSON 不重复列图片清单；图片引用保留正文原位置，素材失败通过 `warnings` 与原位置标记说明。全文检索仍用 `snippet_xml` 保留片段结构，但清除块 ID、范围包装等定位属性，文档引用转成可见名称和链接；片段排序与章节归属在内部完成。
 
 `top_level_blocks` 是内部顶层内容块数量，整张表格或一个分栏容器各算一个，不是章节、字数或表格行数。多章输入会先计算和合并实际区间，所以没有输入起止章节时，旧结果仍有实际正文块起止 ID。这两个端点用于调用原生 range，不应让调用方误认为必须自行传入块 ID。
 
-本机 CLI 的 `im-markdown` 已对同一 revision=116 章节真实比较：能展开表格与 cite 名称/链接，但分栏段落粘连，子页面列表仍是原始标签，未作为默认输出。`container_preview.py` 只从已取得的同修订 XML 生成对照样张：表格按数据行和原列名展开，分栏按列依次读取，引用名称可见且保留链接，图片引用本地文件，子页面只保留引用而不递归读取。`reading-format-checks.json` 记录 25 条表内引用、两栏、4 条列表与 53 条子页面引用的核对；未证明复杂表格与未知容器可无损转换，未知结构会报错。
+本机 CLI 的 `im-markdown` 已对同一 revision=116 章节真实比较：能展开表格与 cite 名称/链接，但分栏段落粘连，子页面列表仍是原始标签，未作为默认输出。`container_preview.py` 现为默认正文提供表达转换，也可从同修订 XML 生成样张：表格优先用 GFM 管道表格，转义单元格管道符，多段内容用 `<br>`；列表、引用、代码、图片与链接使用已有 Markdown 语法。分栏没有通用 Markdown 列布局，按原列顺序以加粗标签展开；合并单元格保留剥除内部定位属性的语义 HTML，不伪造普通表格。未知嵌入内容在原位置标记并追加警告。`reading-format-checks.json` 记录 25 条表内引用、两栏、4 条列表与 53 条子页面引用的核对；未证明复杂表格与未知容器可无损转换，未知结构不会静默丢弃。
+
+## 本轮审阅证据与边界
+
+`public-interface-checks.json` 和新版 `demo.html` 保存 18 个既有场景的已保存真实响应重放（全文检索 7、篇章结构 8、正文 3）及一个实际执行的容器正文场景。前两个工具 13 个场景对象保持；重放保留原采集时间、原命令和计时，并明确标注来源。新增容器正文复用此前真实取得的 revision=116 文章缓存，本次零来源请求，5 列表格、25 条表内链接、两栏内容、53 条子页面引用与 1 张图片已核对。
+
+五工具原型的业务输入输出已按产品 `unit_id` 核对；审阅页的内部诊断、原生调用和代码文件仍供开发者核查，不是 Agent 的产品工具返回。仓库正式 `skills/zeno-waytoagi-search/SKILL.md` 仍是旧版直接 CLI 入口，本轮没有将实验分支当作正式发布，也没有修改该旧 Skill。
+
+普通章节当前复用底层标题标识的字符串，但调用方只将其视为不透明的 `unit_id`，不解析、不转换，也不另行获取正文块标识。正文内的来源链接和本地图片路径是资料引用，不是块定位接口。
+
+Markdown 规则依据 [GFM 规范](https://github.github.com/gfm/)；普通表格保留行列，不再默认拆为字段列表。合并单元格、复杂嵌入内容及其他系统性异常仍由 ZEN-44 继续验证；本轮不宣称所有容器均无损转换，也未作浏览器视觉验收。
 
 ## 文件与数据
 
@@ -119,14 +129,14 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_article_cache
 - `article_cache.py`：仅供后三工具复用的七天文章快照、请求内容与本地图片缓存。
 - `article_cache_demo.py` / `article-cache-checks.json`：真实缓存链路的运行入口和逐步调用、输入、业务返回、计时及诊断。
 - `verify_article_cache.py`：跨工具/实例复用、到期、修订切换、图片清理与配置隔离的行为检查。
-- `container_preview.py` / `reading-format-checks.json`：尚未接入默认正文的阅读形式样张生成器与内容核对。
+- `container_preview.py`：默认正文的 Markdown 优先转换及可单独运行的样张生成器；`reading-format-checks.json` 保留上轮字段列表样张的历史核对。
 - `progressive_search.py`：原生候选与月份匹配的继续状态、最多三条交付。
 - `summary_reader.py`：检索与摘要共用的记录索引及条目刷新；摘要陌生文章逐月查找。
 - `monthly_logs.py`：跨主题共用的月级读取与七天缓存；不检查整年修订号。
 - `verify_progressive.py`：不联网核对渐进续查、缓存期限、月初迁入与原摘要行为。
 - `demo.py`：真实场景重放、样本核对及自包含结果页生成。
 - `demo_template.html`：展示模板，按五个工具组织场景、结果卡片、调用时间线和核对结论；生成的 demo.html 仍是无需额外文件的独立回放。
-- `demo.html`：本次已执行的回放；五个工具展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及原始 XML。篇章结构展示实际业务树；正文读取内嵌完整 Markdown 和原位置图片快照，不含评论。
+- `demo.html`：本次已执行的回放；五个工具展示实际业务 JSON，保留命中片段及原摘要，内部诊断单独展开。全文检索有 OR、两个单词、标题、局部正文、表格单行和无命中七个场景；先展示命中章节层级，突出直接命中的章节，展开可看同章片段数组、读取标识及去除内部定位信息的 XML。篇章结构展示实际业务树；正文读取内嵌完整 Markdown 和原位置图片快照，不含评论。
 - `body_demo.py`：只重跑第五工具三个真实场景，核对完整范围、Markdown、图片并生成可脱离临时素材目录审阅的 HTML。
 - `body-checks.json`：本轮正文选区、标题与图片顺序、文件转换及新旧内容对比账本。
 - `container-checks.json`：补充真实表格及分栏样本的输入、实际返回、引用顺序与图片路径核对。
@@ -147,7 +157,7 @@ python3 skills/zeno-waytoagi-search/scripts/prototype_zen43/verify_article_cache
 
 全文检索先执行 keyword；原生返回空内容时直接交付空命中，不读取全文。有命中时仍读取完整 XML 建立块归属和完整章节链，遇 excerpt 按顶层容器补 range，并核对修订一致。命中标题只交付标题，开篇正文用 `@opening` 衔接后续读取。CLI 成功输出直接返回业务 JSON，内部证据不混入结果。
 
-全文检索业务返回为 `match_tree` 命中章节树，只含命中章节及其祖先，不是全文目录。节点包含 `unit_id`、`hits` 和 `children`；只有原文章节附带 `title`，`@opening` / `@document` 省略该字段；同章命中放入 `hits` 数组，片段只挂在最具体的所属章节，祖先标题只保留一次。每个片段保留 `snippet_xml` 与 `container_expanded`；独立 `block_id` 仅在内部用于排序和定位，不在业务 JSON 重复返回。原始 XML 内已有的 ID 保持。章节和片段均按全文位置排序，不依赖原生响应顺序。未命中且不是祖先的章节省略；可用节点的 `unit_id` 继续获取指定章节的结构或正文。完全无命中时返回 `match_tree: []`，不附全篇结构；无标题文章的命中合并至 `@document`。后者本轮有离线核对，未增加线上无标题样本。固定范围规则及原生返回上限限制由工具说明表达，不返回 `structure_scope` 或固定声明式 `completeness`；删除声明不代表已证明服务端完整性。
+全文检索业务返回为 `match_tree` 命中章节树，只含命中章节及其祖先，不是全文目录。节点包含 `unit_id`、`hits` 和 `children`；只有原文章节附带 `title`，`@opening` / `@document` 省略该字段；同章命中放入 `hits` 数组，片段只挂在最具体的所属章节，祖先标题只保留一次。每个片段保留 `snippet_xml` 与 `container_expanded`；独立 `block_id` 仅在内部用于排序和定位，不在业务 JSON 重复返回。片段 XML 中的内部 ID 和定位属性也移除；来源链接和内容结构保留。章节和片段均按全文位置排序，不依赖原生响应顺序。未命中且不是祖先的章节省略；可用节点的 `unit_id` 继续获取指定章节的结构或正文。完全无命中时返回 `match_tree: []`，不附全篇结构；无标题文章的命中合并至 `@document`。后者本轮有离线核对，未增加线上无标题样本。固定范围规则及原生返回上限限制由工具说明表达，不返回 `structure_scope` 或固定声明式 `completeness`；删除声明不代表已证明服务端完整性。
 
 本轮实际 outline 只返回标题及 ID，缺少普通命中块与章节的归属；full 的 `max-depth=0` 在 PDF 样本上仍返回与无限深度完全一致的 15,248 字符，不能据参数名宣称已降低预读成本。尚未找到经过验证的轻量替代路径，因此有命中时保留 full。演示显示完整 JSON 的字符数与 UTF-8 字节数，不将字符数当作模型 token 数；完整命中集是否改为文件交付仍待后续决定。
 

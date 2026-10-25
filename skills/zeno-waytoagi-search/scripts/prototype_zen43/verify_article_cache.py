@@ -118,8 +118,9 @@ class ArticleCacheChecks(unittest.TestCase):
 
     def test_missing_local_image_is_downloaded_again(self):
         """缓存正文仍有效但图片文件已清理时，只重新下载图片，不重读 XML 或 Markdown。"""
-        first = self.context().read("article", unit_ids=["chapter"])
-        Path(first["images"]["image-token"]["saved_path"]).unlink()
+        first = self.context()
+        first.read("article", unit_ids=["chapter"])
+        Path(first.diagnostics["body_images"]["image-token"]["saved_path"]).unlink()
         self.context().read("article", unit_ids=["chapter"])
         self.assertEqual(len(self.calls), 4)
         self.assertEqual(self.calls[-1][:2], ["docs", "+media-preview"])

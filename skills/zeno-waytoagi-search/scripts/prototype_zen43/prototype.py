@@ -141,6 +141,18 @@ def matched_section_tree(units, positions, hits):
     return roots
 
 
+def public_error(error):
+    """将内部 error 映射为调用方可理解的错误说明；返回文本，不包含 CLI、内部标识或诊断路径。"""
+    if isinstance(error, KeyError):
+        return "所选读取单位不存在，请重新获取文章结构后再试。"
+    if isinstance(error, OSError):
+        return "本地文件读取或保存失败，本次未完成交付。"
+    message = str(error)
+    if isinstance(error, ET.ParseError) or re.search(r"cli|block_id|excerpt|tips|原生|ZEN-44|scope|token", message, re.I):
+        return "来源内容暂无法完整读取，本次未完成交付。"
+    return message
+
+
 def log_entries(content, source, current_day):
     """从日志 content 按日期标题和引用关联原摘要；输入来源与当天日期，返回记录、未解析项、年份路由。"""
     root = xml_root(content)
@@ -358,7 +370,8 @@ class Prototype:
             index = positions.get(block_id)
             if index is None:
                 raise ValueError("命中块无法映射到当前全文，不猜位置")
-            output.append({"block_id": block_id, "snippet_xml": content, "container_expanded": bool(container_id)})
+            from container_preview import public_snippet
+            output.append({"block_id": block_id, "snippet_xml": public_snippet(content), "container_expanded": bool(container_id)})
         result["match_tree"] = matched_section_tree(units, positions, output)
         return result
 
@@ -408,17 +421,20 @@ class Prototype:
                             images[token] = preview_article_image(self, article, token, folder / token)
                         except ValueError as error:
                             images[token] = {"status": "failed", "reason": str(error)}
-                            warnings.append("图片获取失败：" + token + "；" + str(error))
+                            warnings.append("所选正文中有图片获取失败，已在原位置标记。")
                     saved = images[token].get("saved_path")
-                    replacement = str(Path(saved).resolve()) if saved else "图片获取失败:" + token
+                    replacement = str(Path(saved).resolve()) if saved else "图片获取失败"
                     content = localize_image_reference(content, token, replacement)
-            markdown.append(content)
+            from container_preview import format_markdown
+            markdown.append(format_markdown(content, images, warnings))
             ranges.append({"start_block_id": first, "end_block_id": last, "top_level_blocks": right - left,
                            "unit_ids": [u["id"] for u in units if left <= u["start"] < right]})
         path = folder / "body.md"
         path.write_text("\n\n".join(markdown), encoding="utf-8")
+        self.diagnostics["body_ranges"] = ranges
+        self.diagnostics["body_images"] = images
         return {"article": article, "revision": full["revision_id"], "markdown_path": str(path),
-                "actual_ranges": ranges, "images": images, "warnings": warnings,
+                "actual_ranges": [{"unit_ids": actual["unit_ids"]} for actual in ranges], "warnings": warnings,
                 "scope": "full" if not unit_ids and not start_unit_id and not end_unit_id else "selected_sections"}
 
 
@@ -460,7 +476,8 @@ def main():
         return 0
     except (ValueError, KeyError, OSError, ET.ParseError) as error:
         write_json(prototype.run_dir / "calls.json", prototype.calls)
-        print(json.dumps({"status": "prototype_error", "error": str(error), "evidence_dir": str(prototype.run_dir)}, ensure_ascii=False))
+        write_json(prototype.run_dir / "error.json", {"type": type(error).__name__, "error": str(error)})
+        print(json.dumps({"status": "prototype_error", "error": public_error(error)}, ensure_ascii=False))
         return 2
 
 

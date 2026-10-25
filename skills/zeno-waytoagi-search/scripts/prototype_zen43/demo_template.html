@@ -45,7 +45,7 @@ const groups=[
   {name:'摘要读取',description:'从已有记录到陌生文章，查看原摘要如何取得。',names:['摘要读取','摘要过期定点刷新','刷新后再读摘要','陌生旧文章摘要','旧文章再次读摘要'],checks:['摘要缓存直达','摘要定点刷新','陌生文章缺口']},
   {name:'全文检索',description:'按原文顺序查看命中章节快照，展开同章片段，按需继续读取。',names:['全文检索','单词 MarkItDown','单词 MinerU','仅命中标题','仅局部正文命中','表格单行命中','全文检索无命中'],checks:['接口字段一致','业务字段精简','命中章节快照','局部命中不扩目录','OR 与容器','标题与开篇定位','表格单行补全','全文检索无命中']},
   {name:'篇章结构获取',description:'比较整篇与局部目录，按实际父子关系展开。',names:['整篇默认一层','篇章结构获取','局部默认一层','局部展开两层','叶子章节结构','开篇正文结构','无标题文章结构','无标题单位下钻'],checks:['接口字段一致','章节层级','结构局部范围','结构特殊单位','结构读取衔接','结构返回字段','结构子章标识','结构查询起点','结构验证时间']},
-  {name:'正文读取',description:'核对实际范围、完整 Markdown 原文与原位置图片。',names:['正文读取','完整章节范围','全文读取'],checks:['接口字段一致','多章合并与图片','范围终点','全文与图片','正文交付核对','正文验证时间']}
+  {name:'正文读取',description:'核对实际范围、完整 Markdown 原文与原位置图片。',names:['正文读取','完整章节范围','全文读取','容器正文读取'],checks:['接口字段一致','多章合并与图片','范围终点','全文与图片','正文交付核对','正文验证时间','容器 Markdown']}
 ];
 let current=0;
 const remembered=new Map();
@@ -86,12 +86,12 @@ function renderBodyReview(item){
   appendText(panel,'p','以下名称取自本次完整 XML；类型说明与审阅快照不加入业务 JSON。','muted small');
   item.output.actual_ranges.forEach((range,index)=>{
     const card=appendText(panel,'div','','result-card');
-    appendText(card,'h3','范围 '+(index+1)+' · '+range.top_level_blocks+' 个顶层正文块');
+    appendText(card,'h3','范围 '+(index+1));
     review.units.filter(unit=>range.unit_ids.includes(unit.unit_id)).forEach(unit=>{
       const label=unit.title??(unit.kind==='opening'?'开篇正文 · 非原文标题':'无标题全文 · 非原文标题');
       appendText(card,'p',label+(unit.explicitly_selected?' · 输入中明确选择':''),'body-unit');
     });
-    const detail=appendText(card,'details','','json-details');appendText(detail,'summary','读取单位与实际正文块端点');appendText(detail,'pre',JSON.stringify(range,null,2));
+    const detail=appendText(card,'details','','json-details');appendText(detail,'summary','实际覆盖的读取单位');appendText(detail,'pre',JSON.stringify(range,null,2));
   });
   appendText(panel,'h3','完整 Markdown 与原位置图片','section-label');
   appendText(panel,'p','文字保留 Markdown 原样；图片使用本次下载文件的内嵌快照，按文件引用位置展开。这里是离线审阅材料；取得文件不代表调用方已读完。','muted small');
@@ -165,7 +165,7 @@ function renderStructureSections(parent,sections,article){
     appendText(title,'span',section.kind==='section'?'原文章节标题':section.kind==='opening'?'开篇正文 · 非原文标题':'无标题全文 · 非原文标题','small');
     appendText(title,'span',section.has_children?(section.children.length?'有子章节 · 本次已展开':'有子章节 · 受深度限制未展开'):'已到底 · 没有子章节','small');
     const locator=appendText(card,'details','','hit-location');appendText(locator,'summary','读取标识与后续调用参数');
-    appendText(locator,'p',section.kind==='section'?'unit_id 原样使用飞书标题块的 block_id。':'工具定义的读取标识，不是飞书 block_id。','muted small');
+    appendText(locator,'p','unit_id 是产品的读取标识，直接传给后续工具，不需要解析或转换。','muted small');
     appendText(locator,'pre',JSON.stringify({unit_id:section.unit_id,structure:{article,parent_id:section.unit_id,depth:1},read:{article,unit_ids:[section.unit_id]}},null,2));
     if(section.children.length){const children=appendText(card,'div','','match-children');renderStructureSections(children,section.children,article);}
   });
@@ -194,7 +194,7 @@ function renderResult(result,input={}){
     if(!nodes.length)appendText(panel,'p','本次原生查询未返回命中。','empty');
     const tree=appendText(panel,'div','','match-tree');renderMatchedSections(tree,result.match_tree,result.article);
   }
-  if(result.markdown_path){appendText(panel,'h3',result.scope==='full'?'全文已取得':'所选章节已取得');appendText(panel,'p','合并后 '+result.actual_ranges.length+' 段 · 文内图片 '+Object.keys(result.images).length+' 张','result-state');appendText(panel,'p',result.warnings.length?'素材存在未完成项，详见结构化结果。':'本次素材均已获取。','muted small');appendText(panel,'p','Markdown 保存位置','section-label');appendText(panel,'p',result.markdown_path,'path');}
+  if(result.markdown_path){appendText(panel,'h3',result.scope==='full'?'全文已取得':'所选章节已取得');appendText(panel,'p','合并后 '+result.actual_ranges.length+' 段；图片引用保留在正文原位置。','result-state');appendText(panel,'p',result.warnings.length?'素材存在未完成项，详见结构化结果。':'本次素材均已获取。','muted small');appendText(panel,'p','Markdown 保存位置','section-label');appendText(panel,'p',result.markdown_path,'path');}
 }
 /** 从地址锚点读取场景；无效或缺失时显示第一项，无返回值。 */
 function restoreSelection(){const match=location.hash.match(/^#scenario=(\d+)$/);const index=match?Number(match[1]):0;show(evidence.scenarios[index]?index:0);}

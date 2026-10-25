@@ -17,7 +17,8 @@ from zoneinfo import ZoneInfo
 
 from demo import assert_images, build_html, command_purpose
 from article_cache import load_article_cache
-from prototype import Prototype, section_model, write_json
+from prototype import Prototype, section_model, write_json, localize_image_reference
+from container_preview import format_markdown
 
 NAMES = ["正文读取", "完整章节范围", "全文读取"]
 
@@ -53,7 +54,11 @@ def review_body(result, context, arguments):
     blocks, units, _ = section_model(full["content"])
     positions = {block.get("id"): index for index, block in enumerate(blocks)}
     selected_units, image_tokens = [], []
-    for actual in result["actual_ranges"]:
+    actual_ranges = context.diagnostics["body_ranges"]
+    body_images = context.diagnostics["body_images"]
+    assert result["actual_ranges"] == [{"unit_ids": actual["unit_ids"]} for actual in actual_ranges]
+    assert "images" not in result
+    for actual in actual_ranges:
         left, right = positions[actual["start_block_id"]], positions[actual["end_block_id"]] + 1
         included = [unit for unit in units if left <= unit["start"] < right]
         assert actual["unit_ids"] == [unit["id"] for unit in included]
@@ -62,24 +67,24 @@ def review_body(result, context, arguments):
         image_tokens.extend(image.get("src") for block in blocks[left:right] for image in block.iter("img"))
     # 先按实际 XML 选区确定图片，避免用“文件存在”代替选区正确性核对。
     expected_tokens = list(dict.fromkeys(image_tokens))
-    assert list(result["images"]) == expected_tokens
-    assert_images(result)
+    assert list(body_images) == expected_tokens
+    assert_images(result, context.diagnostics)
     markdown = Path(result["markdown_path"]).read_text(encoding="utf-8")
     raw_parts = []
-    for actual in result["actual_ranges"]:
+    for actual in actual_ranges:
         body = saved_document("full", "markdown") if result["scope"] == "full" else saved_document(
             "range", "markdown", start_block_id=actual["start_block_id"], end_block_id=actual["end_block_id"])
         assert body["revision_id"] == result["revision"]
         content = body["content"]
-        for token, image in result["images"].items():
-            content = content.replace("https://feishu.cn/file/" + token, str(Path(image["saved_path"]).resolve()))
-        raw_parts.append(content)
+        for token, image in body_images.items():
+            content = localize_image_reference(content, token, str(Path(image["saved_path"]).resolve()))
+        raw_parts.append(format_markdown(content, body_images, []))
     assert markdown == "\n\n".join(raw_parts)
     assert markdown_headings(markdown) == [unit["title"] for unit in selected_units if "title" in unit]
-    paths = [image["saved_path"] for image in result["images"].values()]
+    paths = [image["saved_path"] for image in body_images.values()]
     assert re.findall(r"!\[[^\]]*\]\((/[^\n)]+)\)", markdown) == paths
     images = []
-    for item in result["images"].values():
+    for item in body_images.values():
         content = Path(item["saved_path"]).read_bytes()
         assert len(content) == item["size_bytes"]
         images.append({"path": item["saved_path"], "sha256": hashlib.sha256(content).hexdigest(),
@@ -124,33 +129,36 @@ def run_demo(output, base):
     overlap, bounded, complete = scenarios
     assert len({item["output"]["revision"] for item in scenarios}) == 1
     for item, blocks, units, images in [(overlap, 52, 6, 4), (bounded, 12, 2, 1), (complete, 130, 19, 11)]:
-        assert sum(actual["top_level_blocks"] for actual in item["output"]["actual_ranges"]) == blocks
+        assert sum(actual["top_level_blocks"] for actual in item["diagnostics"]["body_ranges"]) == blocks
         assert len(item["body_review"]["units"]) == units
         assert len(item["body_review"]["images"]) == images
     assert len(overlap["output"]["actual_ranges"]) == 1
     assert overlap["body_review"]["units"][0]["unit_id"] == overlap["input"]["unit_ids"][0]
     assert len(bounded["body_review"]["units"]) == 2
     assert bounded["body_review"]["units"][-1]["unit_id"] == bounded["input"]["end_unit_id"]
-    assert bounded["output"]["actual_ranges"][0]["end_block_id"] != bounded["input"]["end_unit_id"]
+    assert bounded["diagnostics"]["body_ranges"][0]["end_block_id"] != bounded["input"]["end_unit_id"]
     assert complete["output"]["scope"] == "full"
     comparisons = []
     for old, new in zip(previous, scenarios):
         # 同修订时进一步逐字比较旧正文与图片；路径是每次运行产生的，先归一化再比较。
         same_revision = old["output"]["revision"] == new["output"]["revision"]
         comparison = {"name": new["name"], "same_revision_as_previous": same_revision,
-                      "markdown_matches_native_except_local_image_paths": True,
+                      "markdown_matches_confirmed_format_conversion": True,
                       "headings_match_selected_units_in_order": True,
                       "images_match_selected_xml_and_markdown_in_order": True}
         old_path = Path(old["output"]["markdown_path"])
         if same_revision and old_path.is_file():
             old_body, new_body = old_path.read_text(), new["body_review"]["markdown"]
-            for token in new["output"]["images"]:
-                old_body = old_body.replace(old["output"]["images"][token]["saved_path"], token)
-                new_body = new_body.replace(new["output"]["images"][token]["saved_path"], token)
-                assert Path(old["output"]["images"][token]["saved_path"]).read_bytes() == Path(new["output"]["images"][token]["saved_path"]).read_bytes()
+            old_images = old["output"].get("images", old.get("diagnostics", {}).get("body_images", {}))
+            new_images = new["diagnostics"]["body_images"]
+            old_body = format_markdown(old_body, old_images, [])
+            for token in new_images:
+                old_body = old_body.replace(old_images[token]["saved_path"], token)
+                new_body = new_body.replace(new_images[token]["saved_path"], token)
+                assert Path(old_images[token]["saved_path"]).read_bytes() == Path(new_images[token]["saved_path"]).read_bytes()
             assert old_body == new_body
-            assert old["output"]["actual_ranges"] == new["output"]["actual_ranges"]
-            comparison["same_body_ranges_and_image_bytes_as_previous"] = True
+            assert [{"unit_ids": actual["unit_ids"]} for actual in old["output"]["actual_ranges"]] == new["output"]["actual_ranges"]
+            comparison["same_ranges_and_image_bytes_after_format_conversion"] = True
         comparisons.append(comparison)
     replacements = {item["name"]: item for item in scenarios}
     merged = [replacements.get(item["name"], item) for item in evidence["scenarios"]]
@@ -160,7 +168,7 @@ def run_demo(output, base):
     checks.update({"多章合并与图片": "父章与子章合并为 1 段；父章及 5 个子章仅出现一次，4 张图片按原位置嵌入",
                    "范围终点": "第一步至第二步共 2 个完整子章、12 个顶层块，含第二步末尾图片；未包含第三步",
                    "全文与图片": "130 个顶层块、18 个原标题和开篇正文，11 张文内图片已保存并按原位置嵌入",
-                   "正文交付核对": "JSON 为实际业务返回；文件逐字等于原生 Markdown 替换本地图片路径，原标题顺序及图片顺序一致",
+                   "正文交付核对": "JSON 仅含产品层字段；正文优先使用 Markdown 语法，原标题顺序及图片顺序一致，内部端点及素材映射留在诊断",
                    "正文验证时间": scenarios[-1]["recorded_at"]})
     ledger = {"recorded_at": scenarios[-1]["recorded_at"], "source": "本轮真实只读调用；前四工具完整复用旧证据与计时",
               "unchanged_other_scenarios": unchanged, "scenarios": comparisons,
