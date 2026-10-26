@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-26",
+  "base_commit": "8c65013",
+  "branch": "main",
+  "scope": "九条文档评论默认同意后的剩余实现，以及文章版本变化时自动刷新重试",
+  "implemented": [
+    "locate/read 观察到不同修订后使用已自动刷新的文章快照重做整次操作，最多重试一次；真实来源错误不重试掩盖",
+    "read 重算选区端点，全部范围修订一致后才下载图片和写正文，不混入失败尝试的正文",
+    "search 正常筛除未关联日志候选，无业务 notice；内部计数保留，原生服务 notice 仍抛异常",
+    "locate 保留原生容器 excerpt 和其内结构，不发补全容器的 range；同容器不同节选保留，仅精确重复去重；有子块ID时按全文位置恢复容器内顺序，没有可定位子块ID时保留来源顺序",
+    "演示运行器、模板、README 与 Linear API Contract/工具设计同步；历史证据不重写"
+  ],
+  "comment_resolution": [
+    {
+      "topic": "不连续选区",
+      "state": "前轮完成",
+      "behavior": "每个合并选区前标注所选 unit_ids，不写跳过正文"
+    },
+    {
+      "topic": "容器扩展",
+      "state": "本轮完成",
+      "behavior": "保留原生节选，完整上下文用 read"
+    },
+    {
+      "topic": "snippet 是否原样透传",
+      "state": "说明已明确",
+      "behavior": "保留原生内容结构，移除内部定位属性并规范化引用链接"
+    },
+    {
+      "topic": "重复输入",
+      "state": "前轮完成",
+      "behavior": "批量 summaries 保留 input；单篇不重复 article/keywords"
+    },
+    {
+      "topic": "revision",
+      "state": "本轮补齐",
+      "behavior": "仅内部诊断，检测不同版本后自动刷新重做，持续变化有界失败"
+    },
+    {
+      "topic": "摘要本次范围",
+      "state": "前轮完成",
+      "behavior": "一次调用可跨多月，找齐或查完支持范围后返回"
+    },
+    {
+      "topic": "中间空页",
+      "state": "前轮完成",
+      "behavior": "内部继续，满3条或耗尽后返回"
+    },
+    {
+      "topic": "notice",
+      "state": "本轮完成",
+      "behavior": "正常候选排除不对外提示，真实来源异常保留"
+    },
+    {
+      "topic": "评论命中",
+      "state": "前轮完成",
+      "behavior": "内部筛除，仅评论命中不交付，不暴露 snippet_status"
+    }
+  ],
+  "verification": {
+    "prototype_unittest": 69,
+    "daily_unittest": 34,
+    "updates_unittest": 15,
+    "total_python": 118,
+    "template": "实际模板函数：新旧接口的结构/命中4场景，以及新旧表格核对结论的导航显示",
+    "red_green": "刷新成功/持续更新有界失败/重算端点/第二选区更新不混版/多容器节选/正常筛除无notice 均先在旧实现失败；模板遗漏先复现失败再修复；逆序同容器节选先复现失败再修复",
+    "diff_check": "passed",
+    "new_live_source_calls": 0,
+    "browser_visual_review": false,
+    "standards_review": "1项P3模板核对键遗漏已修复，独立最终复核剩余0",
+    "spec_review": "发现1项P2同容器节选排序遗漏，已用已有全文内部ID位置排序并加先红后绿回归；独立最终复核69项原型和模板通过，剩余0"
+  },
+  "paused": "创建月份优先算法按用户要求保持暂停；原月份方向与月份缓存未改",
+  "limits": [
+    "未重新采集全套线上演示",
+    "原有复杂嵌套内容/内联XML格式缺陷仍属ZEN-57",
+    "未推送或发布正式Skill"
+  ]
+}

@@ -70,7 +70,7 @@ def command_purpose(arguments, method):
     if scope == "range":
         if method in {"search", "summaries"}:
             return "按已保存的日志条目位置刷新这一条原摘要，核对块 ID 与文章身份；不延长整月缓存有效期。"
-        return "读取计算后的完整章节区间，取得 Markdown 正文。" if options.get("--doc-format") == "markdown" else "按命中的顶层容器标识补读完整容器，避免只交付表格或容器节选。"
+        return "读取计算后的完整章节区间，取得 Markdown 正文。" if options.get("--doc-format") == "markdown" else "读取指定块范围的完整 XML。"
     if options.get("--doc-format") == "markdown":
         return "读取全文 Markdown，保留文章标题与正文结构，随后处理文内图片。"
     if method in {"search", "summaries"}:
@@ -252,21 +252,21 @@ def run_demo(output):
         {"article": SAMPLE, "keywords": ["MarkItDown", "MinerU"]}, "locate", article=SAMPLE, keywords=["MarkItDown", "MinerU"])
     located_nodes = section_nodes(located["match_tree"])
     located_hits = [h for node in located_nodes for h in node["hits"]]
-    assert any(h["container_expanded"] for h in located_hits)
+    assert all(not h["container_expanded"] for h in located_hits)
     assert len({node["unit_id"] for node in located_nodes}) == len(located_nodes)
     assert all(node["hits"] or node["children"] for node in located_nodes)
-    for h in located_hits:
-        if h["container_expanded"]:
-            assert "<excerpt" not in h["snippet_xml"] and "MarkItDown" in h["snippet_xml"] and "MinerU" in h["snippet_xml"]
-    # 单分支与 OR 的顶层命中集合比较，避免把嵌套节点数量说成独立命中数量。
+    assert any("<excerpt" in h["snippet_xml"] for h in located_hits)
+    # 原生 OR 可能合并同容器的节选，因此比较命中单位并集，不要求节选 XML 字节相同。
     single_a, single_a_context = capture("单词 MarkItDown", "单独查询 MarkItDown；可与 OR 场景对照，普通段落、代码与标题保留原生命中块。",
         {"article": SAMPLE, "keywords": ["MarkItDown"]}, "locate", article=SAMPLE, keywords=["MarkItDown"])
-    single_b, single_b_context = capture("单词 MinerU", "单独查询 MinerU；同一容器内的多处命中合并为一个顶层单位。",
+    single_b, single_b_context = capture("单词 MinerU", "单独查询 MinerU；同一容器的不同命中节选均保留，仅精确重复节选去重。",
         {"article": SAMPLE, "keywords": ["MinerU"]}, "locate", article=SAMPLE, keywords=["MinerU"])
     assert located_context.diagnostics["revision"] == single_a_context.diagnostics["revision"] == single_b_context.diagnostics["revision"]
-    single_hits = [h for result in (single_a, single_b) for node in section_nodes(result["match_tree"]) for h in node["hits"]]
-    assert {h["snippet_xml"] for h in located_hits} == {h["snippet_xml"] for h in single_hits}
-    checks["OR 与容器"] = f"{len(located_hits)} 个顶层命中单位；并集相等，表格补全"
+    single_units = {node["unit_id"] for result in (single_a, single_b)
+                    for node in section_nodes(result["match_tree"]) if node["hits"]}
+    assert {node["unit_id"] for node in located_nodes if node["hits"]} == single_units
+    assert all(any(word in h["snippet_xml"] for word in ("MarkItDown", "MinerU")) for h in located_hits)
+    checks["OR 与容器"] = f"{len(located_hits)} 个片段；命中读取单位并集相等，保留原生容器节选"
     checks["命中章节快照"] = f"{len(located_hits)} 个片段归入 {sum(bool(node['hits']) for node in located_nodes)} 个直接命中读取单位；保留祖先共 {len(located_nodes)} 个节点，共享路径只出现一次"
 
     heading, _ = capture("仅命中标题", "输入本篇唯一的章节标题；只返回命中标题，保留父章到子章的完整链，不自动展开整章正文。",
@@ -287,13 +287,13 @@ def run_demo(output):
     assert xml_root(local_nodes[1]["hits"][0]["snippet_xml"])[0].tag == "p"
     checks["局部命中不扩目录"] = "Python 版本查询只保留父章与安装 MarkItDown 子章，不附安装 MinerU 等未命中章节"
 
-    table, _ = capture("表格单行命中", "仅匹配一行中的文字，内部仍补齐整张表，包括表头和另一工具行；返回量可能大于原生命中节选。",
+    table, _ = capture("表格单行命中", "仅匹配一行中的文字，保留原生表格节选；完整表格需要通过 read 读取所在章节。",
         {"article": SAMPLE, "keywords": ["轻量、快速，适合批量转换"]}, "locate", article=SAMPLE, keywords=["轻量、快速，适合批量转换"])
     table_hits = [h for node in section_nodes(table["match_tree"]) for h in node["hits"]]
-    assert len(table_hits) == 1 and table_hits[0]["container_expanded"]
+    assert len(table_hits) == 1 and not table_hits[0]["container_expanded"]
     table_xml = xml_root(table_hits[0]["snippet_xml"])
-    assert len(list(table_xml.iter("tr"))) == 3 and "MinerU" in table_hits[0]["snippet_xml"]
-    checks["表格单行补全"] = "原生单行节选补为三行完整表格，含表头及另一工具行，不额外返回表外正文"
+    assert len(list(table_xml.iter("tr"))) == 1 and "MinerU" not in table_hits[0]["snippet_xml"]
+    checks["表格单行节选"] = "保留原生单行表格结构，不补取表头、其他工具行或表外正文"
 
     empty, empty_context = capture("全文检索无命中", "使用特定不存在的关键词，真实服务返回空内容后即结束；只做一次 keyword 请求，不再读取全文。",
         {"article": SAMPLE, "keywords": ["ZEN43_NO_MATCH_20261024"]}, "locate", article=SAMPLE, keywords=["ZEN43_NO_MATCH_20261024"])

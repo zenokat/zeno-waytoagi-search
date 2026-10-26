@@ -128,15 +128,57 @@ class ArticleCacheChecks(unittest.TestCase):
         self.assertEqual(len(self.calls), 4)
         self.assertEqual(self.calls[-1][:2], ["docs", "+media-preview"])
 
-    def test_read_rejects_old_structure_with_new_markdown(self):
-        """首次补 Markdown 发现修订变化时明确失败；再次调用取得同修订结构后才成功。"""
+    def test_read_refreshes_old_structure_with_new_markdown(self):
+        """补 Markdown 发现更新后，同一次调用自动重取结构并交付新正文。"""
         self.context().structure("article")
         self.revision = 2
-        with self.assertRaisesRegex(ValueError, "修订不一致"):
-            self.context().read("article", unit_ids=["chapter"])
         result = self.context().read("article", unit_ids=["chapter"])
         self.assertIn("# 章节 2", Path(result["markdown_path"]).read_text())
         self.assertEqual(len(self.calls), 4)
+
+    def test_read_refresh_recomputes_range_endpoints(self):
+        """结构缓存过期于来源更新时，重算新块端点，不复用旧范围 Markdown。"""
+        self.context().structure("article")
+        self.full = '<h1 id="chapter">章节</h1><p id="new-end">新增末尾</p>'
+        self.revision = 2
+        result = self.context().read("article", unit_ids=["chapter"])
+        options = dict(zip(self.calls[-1][2::2], self.calls[-1][3::2]))
+        self.assertEqual(options["--end-block-id"], "new-end")
+        self.assertIn("# 章节 2", Path(result["markdown_path"]).read_text())
+
+    def test_read_refresh_discards_earlier_selection_of_old_revision(self):
+        """第二个不连续选区更新后，先前选区也重取；交付文件不得残留旧版内容。"""
+        self.full = '<h1 id="a">甲</h1><h1 id="b">乙</h1><h1 id="c">丙</h1>'
+        def response(arguments):
+            """读到第二个选区时将来源升到版本二，返回带版本文字的选区正文。"""
+            options = dict(zip(arguments[2::2], arguments[3::2]))
+            if options.get("--start-block-id") == "c":
+                self.revision = 2
+            result = self.respond(arguments)
+            if options.get("--doc-format") == "markdown":
+                result["data"]["document"]["content"] = f'{options["--start-block-id"]} 版本 {self.revision}'
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            result = self.context().read("article", unit_ids=["a", "c"])
+        content = Path(result["markdown_path"]).read_text()
+        self.assertIn("a 版本 2", content)
+        self.assertIn("c 版本 2", content)
+        self.assertNotIn("版本 1", content)
+
+    def test_continuous_revision_changes_stop_without_partial_body(self):
+        """每次来源请求都更新时仅重试一次，不生成正文或下载图片。"""
+        def response(arguments):
+            """每次外部请求推进版本后返回文档；模拟持续编辑。"""
+            self.revision += 1
+            return self.respond(arguments)
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            with self.assertRaisesRegex(ValueError, "自动刷新后仍"):
+                self.context().read("article", unit_ids=["chapter"])
+        self.assertEqual(len(self.calls), 4)
+        self.assertTrue(all(call[:2] == ["docs", "+fetch"] for call in self.calls))
+        self.assertEqual(list(Path(self.folder.name).rglob("body.md")), [])
 
     def test_body_demo_verifies_labeled_markdown_using_internal_revision(self):
         """演示核对新正文标记和内部修订，业务返回不再提供修订号也能完成检查。"""

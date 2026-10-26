@@ -88,8 +88,54 @@ class FulltextChecks(unittest.TestCase):
     def test_changed_revision_is_rejected(self):
         """关键词与结构修订不一致时拒绝拼接；预期抛出 ValueError。"""
         self.revision = 2
-        with self.assertRaisesRegex(ValueError, "文章发生更新"):
+        with self.assertRaisesRegex(ValueError, "自动刷新后仍"):
             Prototype(self.folder.name).locate("article", ["关键词"])
+        self.assertEqual(self.scopes, ["keyword", "full", "keyword", "full"])
+
+    def test_locate_refreshes_after_revision_changes(self):
+        """关键词与结构跨版本后，整次定位自动重做，只交付新版本片段；无额外用户调用。"""
+        def response(arguments):
+            """首次关键词为旧版，其后来源稳定到新版；返回原生文档信封。"""
+            scope = arguments[arguments.index("--scope") + 1]
+            self.scopes.append(scope)
+            revision = 1 if len(self.scopes) == 1 else 2
+            content = f'<p id="opening">版本 {revision}</p>' if scope == "keyword" else self.full
+            return {"data": {"document": {"content": content, "revision_id": revision}}}
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            result = Prototype(self.folder.name).locate("article", ["版本"])
+        self.assertIn("版本 2", result["match_tree"][0]["hits"][0]["snippet_xml"])
+        self.assertEqual(self.scopes, ["keyword", "full", "keyword"])
+
+    def test_container_excerpts_keep_distinct_hits_without_expansion(self):
+        """同一表格的不同原生节选均保留，精确重复节选合并；不补取整表或无关行。"""
+        self.full = '<h1 id="chapter">表格章</h1><table id="table"><tr><td>未命中行</td></tr></table>'
+        first = '<excerpt top-block-id="table"><table><tr><td>命中一</td></tr></table></excerpt>'
+        second = '<excerpt top-block-id="table"><table><tr><td>命中二</td></tr></table></excerpt>'
+        self.keyword = '<fragment>' + first + second + first + '</fragment>'
+        result = Prototype(self.folder.name).locate("article", ["命中"])
+        hits = result["match_tree"][0]["hits"]
+        self.assertEqual(len(hits), 2)
+        self.assertEqual(["".join(xml_root(hit["snippet_xml"]).itertext()) for hit in hits], ["命中一", "命中二"])
+        self.assertTrue(all(not hit["container_expanded"] for hit in hits))
+        self.assertTrue(all(len(list(xml_root(hit["snippet_xml"]).iter("tr"))) == 1 for hit in hits))
+        self.assertNotIn("top-block-id", json.dumps(hits))
+        self.assertEqual(self.scopes, ["keyword", "full"])
+
+    def test_container_excerpts_sort_by_inner_source_blocks(self):
+        """同表格节选逆序返回时，使用已有子块 ID 恢复原文顺序，不补读或扩展片段。"""
+        self.full = ('<h1 id="chapter">表格章</h1><table id="table">'
+                     '<tr><td><p id="early">前行</p></td></tr>'
+                     '<tr><td><p id="late">后行</p></td></tr></table>')
+        self.keyword = ('<fragment><excerpt top-block-id="table"><table><tr><td>'
+                        '<p id="late">后行</p></td></tr></table></excerpt>'
+                        '<excerpt top-block-id="table"><table><tr><td>'
+                        '<p id="early">前行</p></td></tr></table></excerpt></fragment>')
+        result = Prototype(self.folder.name).locate("article", ["行"])
+        hits = result["match_tree"][0]["hits"]
+        self.assertEqual(["".join(xml_root(hit["snippet_xml"]).itertext()) for hit in hits], ["前行", "后行"])
+        self.assertEqual(self.scopes, ["keyword", "full"])
+        self.assertTrue(all(set(hit) == {"snippet_xml", "container_expanded"} for hit in hits))
 
     def test_demo_does_not_remove_snippets(self):
         """演示保留定位业务 JSON 原样，包括片段，不添加只用于展示的计数。"""

@@ -15,6 +15,7 @@ from xml.etree import ElementTree as ET
 from .source import SPACE, PARSER_VERSION, daily, log_entries, strip_comments, write_json, xml_root
 from .sections import matched_section_tree, section_model, top_blocks
 from .markdown import localize_image_reference
+from .article_cache import ArticleRevisionChanged, retry_article_snapshot
 
 
 class Prototype:
@@ -164,6 +165,10 @@ class Prototype:
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""
+        return retry_article_snapshot(self._locate_once, article, keywords)
+
+    def _locate_once(self, article, keywords):
+        """按 article 和 keywords 完成一次定位；返回命中树，跨修订时交由外层重做。"""
         hits = self.article_fetch(article, "keyword", keyword="|".join(keywords), context_before=0, context_after=0)
         root = xml_root(hits["content"])
         result = {"match_tree": []}
@@ -173,30 +178,40 @@ class Prototype:
         full = self.article_fetch(article)
         blocks, units, positions = section_model(full["content"])
         if hits["revision_id"] != full["revision_id"]:
-            raise ValueError("定位时文章发生更新")
+            raise ArticleRevisionChanged("定位时文章发生更新")
         output, seen = [], set()
+        # 顶层位置只能排章节/容器；遍历现有全文的内部块，才能排列同容器内的多个节选。
+        source_order = {element.get("id"): index for index, element in enumerate(
+            element for block in blocks for element in block.iter()) if element.get("id")}
         for element in top_blocks(root):
             container_id = element.get("top-block-id") if element.tag == "excerpt" else None
             block_id = container_id or element.get("id")
-            if not block_id or block_id in seen:
-                continue
-            seen.add(block_id)
             content = ET.tostring(element, encoding="unicode")
-            if container_id:
-                complete = self.article_fetch(article, "range", start_block_id=container_id, end_block_id=container_id)
-                if complete["revision_id"] != full["revision_id"]:
-                    raise ValueError("补全容器时文章发生更新")
-                content = complete["content"]
+            # 同一容器可以有多个不同命中节选；只合并精确重复，不以容器 ID 丢掉后续片段。
+            identity = (block_id, content)
+            if not block_id or identity in seen:
+                continue
+            seen.add(identity)
             index = positions.get(block_id)
             if index is None:
                 raise ValueError("命中块无法映射到当前全文，不猜位置")
             from experiments.zen43.core.markdown import public_snippet
-            output.append({"block_id": block_id, "snippet_xml": public_snippet(content), "container_expanded": bool(container_id)})
-        result["match_tree"] = matched_section_tree(units, positions, output)
+            # 节选的容器 ID 只定位外层；用内部已有子块 ID 找起点。无子块 ID 时保留来源顺序。
+            first_position = min((source_order[child.get("id")] for child in element.iter()
+                                  if child.get("id") in source_order and child.get("id") != block_id),
+                                 default=source_order[block_id])
+            output.append(((index, first_position), {"block_id": block_id,
+                           "snippet_xml": public_snippet(content), "container_expanded": False}))
+        ordered_hits = [hit for _, hit in sorted(output, key=lambda item: item[0])]
+        result["match_tree"] = matched_section_tree(units, positions, ordered_hits)
         return result
 
     def read(self, article, unit_ids=None, start_unit_id=None, end_unit_id=None):
         """按 article 及可选单位列表或起止单位读取正文；返回 Markdown 路径、范围类型和警告。"""
+        return retry_article_snapshot(self._read_once, article, unit_ids, start_unit_id, end_unit_id)
+
+    def _read_once(self, article, unit_ids, start_unit_id, end_unit_id):
+        """按文章和三种选区参数完成一次读取；全部范围同修订后才生成文件，返回正文信息。"""
         if unit_ids and (start_unit_id or end_unit_id):
             raise ValueError("章节列表与范围不能同时指定")
         full = self.article_fetch(article)
@@ -216,9 +231,7 @@ class Prototype:
                 merged[-1] = (merged[-1][0], max(right, merged[-1][1]))
             else:
                 merged.append((left, right))
-        markdown, images, ranges, warnings = [], {}, [], []
-        # macOS 的默认临时目录不在 lark-cli 输出白名单；使用它明确支持的 /tmp。
-        folder = Path(tempfile.mkdtemp(prefix="zen43-body-", dir="/tmp")).resolve()
+        bodies = []
         for left, right in merged:
             first, last = blocks[left].get("id"), blocks[right - 1].get("id")
             if not first or not last:
@@ -228,7 +241,14 @@ class Prototype:
             else:
                 body = self.article_fetch(article, "range", format="markdown", start_block_id=first, end_block_id=last)
             if body["revision_id"] != full["revision_id"]:
-                raise ValueError("正文与章节结构修订不一致")
+                raise ArticleRevisionChanged("正文与章节结构修订不一致")
+            bodies.append(body)
+        # 先核对所有选区，再下载图片和写文件；重试不残留半篇正文，也不重复下载旧版图片。
+        markdown, images, ranges, warnings = [], {}, [], []
+        # macOS 的默认临时目录不在 lark-cli 输出白名单；使用它明确支持的 /tmp。
+        folder = Path(tempfile.mkdtemp(prefix="zen43-body-", dir="/tmp")).resolve()
+        for (left, right), body in zip(merged, bodies):
+            first, last = blocks[left].get("id"), blocks[right - 1].get("id")
             content = body["content"]
             for block in blocks[left:right]:
                 for image in block.iter("img"):

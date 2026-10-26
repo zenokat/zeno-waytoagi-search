@@ -76,6 +76,21 @@ class ProgressiveChecks(unittest.TestCase):
         self.assertEqual(second["status"], "finished")
         self.assertIsNone(second["next_cursor"])
 
+    def test_unmatched_candidates_are_filtered_without_business_notice(self):
+        """原生候选不在所查日志时正常排除，仅内部记录数量；结束结果没有 notice。"""
+        context = self.context()
+        result = context.search(query="RAG", since="2026-09-01", until="2026-09-30")
+        self.assertEqual([row["article_id"] for row in result["results"]], ["september"])
+        self.assertEqual(set(result), {"results", "status", "next_cursor"})
+        self.assertEqual(result["status"], "finished")
+        self.assertGreater(context.diagnostics["unmatched_candidates"], 0)
+
+    def test_native_notice_still_fails_instead_of_looking_finished(self):
+        """原生服务的 notice 仍是需要核对的来源异常，不因精简业务 notice 而被吞掉。"""
+        with patch.object(daily, "run_cli", return_value={"data": {"notice": "来源异常"}}):
+            with self.assertRaisesRegex(ValueError, "原生搜索含 notice"):
+                self.context().search(query="RAG")
+
     def test_comment_only_matches_are_filtered_before_filling_page(self):
         """仅评论命中的文章不交付，也不暴露评论状态；其余正常结果补足三条。"""
         def response(arguments):

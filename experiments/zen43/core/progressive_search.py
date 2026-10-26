@@ -168,6 +168,4 @@ def search(context, query=None, since=None, until=None, cursor=None):
                            "unmatched_candidates": len(unknown), "delivered": len(state["delivered"])}
     result = {"results": page, "next_cursor": next_cursor,
               "status": "can_continue" if continuing else "finished"}
-    if not continuing and unknown:
-        result["notice"] = "部分原生候选未关联社区日志，无法确认是否符合收录条件。"
     return result

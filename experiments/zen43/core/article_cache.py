@@ -17,6 +17,24 @@ ARTICLE_TTL_SECONDS = 7 * 24 * 60 * 60
 ARTICLE_CACHE_VERSION = 1
 
 
+class ArticleRevisionChanged(ValueError):
+    """一次操作取得不同修订时的内部信号；由调用协调层重做，不直接作为首次业务错误。"""
+
+
+def retry_article_snapshot(operation, *args, **kwargs):
+    """执行 operation 及其参数并返回业务结果；修订变化后用已刷新的快照最多重做一次。
+
+    fetch_article 已在观察到不同修订时淘汰旧快照；重做整个操作会重新解析章节和选区，
+    不把前一次取得的片段带入结果。仅捕获修订信号，来源读取或参数错误仍直接抛出。
+    """
+    for attempt in range(2):
+        try:
+            return operation(*args, **kwargs)
+        except ArticleRevisionChanged as error:
+            if attempt == 1:
+                raise ValueError("文章持续更新，自动刷新后仍无法取得一致内容；请稍后重试") from error
+
+
 def load_article_cache(context, article):
     """输入调用 context 与 article URL/token，返回缓存路径及有效快照；缺失、损坏或过期返回空字典。"""
     parsed = urlparse(article)
