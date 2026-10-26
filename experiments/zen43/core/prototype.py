@@ -127,7 +127,9 @@ class Prototype:
     def article_fetch(self, article, scope="full", format="xml", **options):
         """输入 article、scope、format 与范围选项；返回后三工具共用的七天文章快照内容。"""
         from experiments.zen43.core.article_cache import fetch_article
-        return fetch_article(self, article, scope, format, **options)
+        document = fetch_article(self, article, scope, format, **options)
+        self.diagnostics.update({"article": article, "revision": document["revision_id"]})
+        return document
 
     def structure(self, article, parent_id=None, depth=1):
         """获取 article 在 parent_id 下 depth 层标题树；返回目录节点及查询起点 parent。
@@ -158,13 +160,13 @@ class Prototype:
             (parent["children"] if parent else roots).append(node)
         self.diagnostics["structure_units"] = units
         query_parent = {"unit_id": base["id"], "has_children": base["id"] in parents_with_children} if base else None
-        return {"article": article, "revision": document["revision_id"], "parent": query_parent, "outline": roots}
+        return {"parent": query_parent, "outline": roots}
 
     def locate(self, article, keywords):
         """在 article 中以 keywords 的 OR 查询定位；返回按原文排列、合并片段的命中章节树。"""
         hits = self.article_fetch(article, "keyword", keyword="|".join(keywords), context_before=0, context_after=0)
         root = xml_root(hits["content"])
-        result = {"article": article, "revision": hits["revision_id"], "keywords": keywords, "match_tree": []}
+        result = {"match_tree": []}
         # 原生明确返回空内容时没有待补的位置；不为无命中查询再读取全文。
         if not hits["content"].strip() or not len(root):
             return result
@@ -194,7 +196,7 @@ class Prototype:
         return result
 
     def read(self, article, unit_ids=None, start_unit_id=None, end_unit_id=None):
-        """按 article 及可选单位列表或起止单位读取正文；返回 Markdown 路径、修订、范围类型和警告。"""
+        """按 article 及可选单位列表或起止单位读取正文；返回 Markdown 路径、范围类型和警告。"""
         if unit_ids and (start_unit_id or end_unit_id):
             raise ValueError("章节列表与范围不能同时指定")
         full = self.article_fetch(article)
@@ -244,13 +246,18 @@ class Prototype:
                     replacement = str(Path(saved).resolve()) if saved else "图片获取失败"
                     content = localize_image_reference(content, token, replacement)
             from experiments.zen43.core.markdown import format_markdown
-            markdown.append(format_markdown(content, images, warnings))
+            rendered = format_markdown(content, images, warnings)
+            if unit_ids:
+                # 合并重叠内容后仍保留调用方选中的 ID；只标选区来源，不补写原文标题或省略说明。
+                selected = [u["id"] for u in units if u["id"] in unit_ids and left <= u["start"] < right]
+                rendered = "> unit_ids: " + json.dumps(selected, ensure_ascii=False) + "\n\n" + rendered
+            markdown.append(rendered)
             ranges.append({"start_block_id": first, "end_block_id": last, "top_level_blocks": right - left,
                            "unit_ids": [u["id"] for u in units if left <= u["start"] < right]})
         path = folder / "body.md"
         path.write_text("\n\n".join(markdown), encoding="utf-8")
         self.diagnostics["body_ranges"] = ranges
         self.diagnostics["body_images"] = images
-        return {"article": article, "revision": full["revision_id"], "markdown_path": str(path),
+        return {"markdown_path": str(path),
                 "warnings": warnings,
                 "scope": "full" if not unit_ids and not start_unit_id and not end_unit_id else "selected_sections"}

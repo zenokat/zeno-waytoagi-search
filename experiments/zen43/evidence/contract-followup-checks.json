@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-26",
+  "baseline": "bfa601e",
+  "verification": "离线执行真实工具入口，仅替换外部 CLI；另有 3 次真实只读搜索时间字段抽样。",
+  "offline_checks": {
+    "prototype": 61,
+    "daily": 34,
+    "updates": 15,
+    "total": 110
+  },
+  "red_before_green": [
+    "single_article_output_fields",
+    "full_three_item_continuation",
+    "discontinuous_unit_labels",
+    "comment_only_candidate_filter",
+    "cyclic_native_page_guard",
+    "template_followup_article"
+  ],
+  "search_time_samples": [
+    {
+      "query": "RAG",
+      "sort": "create_time",
+      "page_size": 20,
+      "returned_records": 20,
+      "create_time_values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "query": "Agent",
+      "sort": "create_time",
+      "page_size": 20,
+      "returned_records": 20,
+      "create_time_values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "query": "PDF",
+      "sort": "create_time",
+      "page_size": 20,
+      "returned_records": 20,
+      "create_time_values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "time_sample_limit": "60 条返回记录未按文章去重；仅三个主题首屏，不代表全库。create_time=0 无法用于定位创建月份。",
+  "month_routing": "按用户选择暂停；当前仍沿原方向与缓存规则查找。",
+  "body_example": "> unit_ids: [\"a\"]\n\n第一段正文。\n\n> unit_ids: [\"c\"]\n\n第三段正文。",
+  "limits": [
+    "没有重采完整五工具演示或做浏览器视觉验收",
+    "历史 JSON/HTML 不修改",
+    "容器命中是否扩展仍待讨论，当前行为不变",
+    "notice 是否精简仍待讨论，当前行为不变",
+    "已知嵌套格式缺陷仍留 ZEN-57"
+  ],
+  "template_check": "node experiments/zen43/tests/verify_template.cjs：新旧接口各覆盖结构、命中两场景，后续参数包含article；先失败后修复。"
+}

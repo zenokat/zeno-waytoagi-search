@@ -101,6 +101,33 @@ class InterfaceChecks(unittest.TestCase):
         self.assertNotIn("CLI", result["error"])
         self.assertNotIn("block_id", result["error"])
 
+    def test_single_article_outputs_omit_echoed_inputs_and_revision(self):
+        """三工具仅交付可使用结果；输入与修订留在调用上下文，不进入业务 JSON。"""
+        for arguments, fields in [
+            (("locate", "--keywords", "Python"), {"match_tree"}),
+            (("structure",), {"parent", "outline"}),
+            (("read",), {"markdown_path", "warnings", "scope"}),
+        ]:
+            with self.subTest(tool=arguments[0]):
+                result = self.invoke(*arguments)
+                if "markdown_path" in result:
+                    self.cleanup_body(result)
+                self.assertEqual(set(result), fields)
+
+    def test_discontinuous_body_labels_selected_unit_ids_in_source_order(self):
+        """逆序选择不连续单位时，正文按原文排序且各段标明输入 ID，不插入省略说明。"""
+        result = self.invoke("read", "--unit-ids", "next", "a")
+        self.cleanup_body(result)
+        self.assertEqual(Path(result["markdown_path"]).read_text(),
+                         '> unit_ids: ["a"]\n\n选区正文\n\n> unit_ids: ["next"]\n\n选区正文')
+
+    def test_overlapping_units_share_body_and_keep_selected_ids(self):
+        """父子单位和重复 ID 合并为一份正文，标记按原文顺序列出实际选择且不重复。"""
+        result = self.invoke("read", "--unit-ids", "a", "install", "a")
+        self.cleanup_body(result)
+        self.assertEqual(Path(result["markdown_path"]).read_text(),
+                         '> unit_ids: ["install", "a"]\n\n选区正文')
+
 
 if __name__ == "__main__":
     unittest.main()

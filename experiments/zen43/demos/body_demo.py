@@ -15,7 +15,7 @@ import tempfile
 import time
 from zoneinfo import ZoneInfo
 
-from experiments.zen43.demos.demo import assert_images, build_html, command_purpose
+from experiments.zen43.demos.demo import assert_images, build_html, command_purpose, scenario_revision
 from experiments.zen43.core.article_cache import load_article_cache
 from experiments.zen43.core.prototype import Prototype
 from experiments.zen43.core.sections import section_model
@@ -77,11 +77,16 @@ def review_body(result, context, arguments):
     for actual in actual_ranges:
         body = saved_document("full", "markdown") if result["scope"] == "full" else saved_document(
             "range", "markdown", start_block_id=actual["start_block_id"], end_block_id=actual["end_block_id"])
-        assert body["revision_id"] == result["revision"]
+        assert body["revision_id"] == context.diagnostics["revision"]
         content = body["content"]
         for token, image in body_images.items():
             content = localize_image_reference(content, token, str(Path(image["saved_path"]).resolve()))
-        raw_parts.append(format_markdown(content, body_images, []))
+        rendered = format_markdown(content, body_images, [])
+        if arguments.get("unit_ids"):
+            selected = [unit["id"] for unit in selected_units if unit["id"] in arguments["unit_ids"]
+                        and unit["id"] in actual["unit_ids"]]
+            rendered = "> unit_ids: " + json.dumps(selected, ensure_ascii=False) + "\n\n" + rendered
+        raw_parts.append(rendered)
     assert markdown == "\n\n".join(raw_parts)
     assert markdown_headings(markdown) == [unit["title"] for unit in selected_units if "title" in unit]
     paths = [image["saved_path"] for image in body_images.values()]
@@ -130,7 +135,7 @@ def run_demo(output, base):
     previous = [next(item for item in evidence["scenarios"] if item["name"] == name) for name in NAMES]
     scenarios = [capture(output, item) for item in previous]
     overlap, bounded, complete = scenarios
-    assert len({item["output"]["revision"] for item in scenarios}) == 1
+    assert len({scenario_revision(item) for item in scenarios}) == 1
     for item, blocks, units, images in [(overlap, 52, 6, 4), (bounded, 12, 2, 1), (complete, 130, 19, 11)]:
         assert sum(actual["top_level_blocks"] for actual in item["diagnostics"]["body_ranges"]) == blocks
         assert len(item["body_review"]["units"]) == units
@@ -144,7 +149,7 @@ def run_demo(output, base):
     comparisons = []
     for old, new in zip(previous, scenarios):
         # 同修订时进一步逐字比较旧正文与图片；路径是每次运行产生的，先归一化再比较。
-        same_revision = old["output"]["revision"] == new["output"]["revision"]
+        same_revision = scenario_revision(old) == scenario_revision(new)
         comparison = {"name": new["name"], "same_revision_as_previous": same_revision,
                       "markdown_matches_confirmed_format_conversion": True,
                       "headings_match_selected_units_in_order": True,
@@ -159,7 +164,8 @@ def run_demo(output, base):
                 old_body = old_body.replace(old_images[token]["saved_path"], token)
                 new_body = new_body.replace(new_images[token]["saved_path"], token)
                 assert Path(old_images[token]["saved_path"]).read_bytes() == Path(new_images[token]["saved_path"]).read_bytes()
-            assert old_body == new_body
+            assert re.sub(r'^> unit_ids: .*\n\n', '', old_body, flags=re.M) == re.sub(
+                r'^> unit_ids: .*\n\n', '', new_body, flags=re.M)
             old_ranges = old.get("diagnostics", {}).get("body_ranges", old["output"].get("actual_ranges", []))
             assert [actual["unit_ids"] for actual in old_ranges] == [
                 actual["unit_ids"] for actual in new["diagnostics"]["body_ranges"]]

@@ -94,7 +94,7 @@ class StructureChecks(unittest.TestCase):
             status = main()
         self.assertEqual(status, 0)
         result = json.loads(output.getvalue())
-        self.assertEqual(set(result), {"article", "revision", "parent", "outline"})
+        self.assertEqual(set(result), {"parent", "outline"})
 
     def test_children_flag_uses_full_structure_not_visible_children(self):
         """同一父章在浅层被截断时仍标有子章，真实叶子及开篇始终标无子章。"""

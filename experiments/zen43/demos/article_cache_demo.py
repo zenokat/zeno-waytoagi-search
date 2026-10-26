@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from experiments.zen43.core.prototype import Prototype
 from experiments.zen43.core.source import write_json
-from experiments.zen43.demos.demo import command_purpose
+from experiments.zen43.demos.demo import command_purpose, scenario_revision
 
 
 def run_demo(output):
@@ -43,7 +43,7 @@ def run_demo(output):
     assert len(scenarios[2]["native"]) == 2
     assert scenarios[3]["native"] == []
     assert Path(scenarios[2]["output"]["markdown_path"]).read_text() == Path(scenarios[3]["output"]["markdown_path"]).read_text()
-    assert len({s["output"]["revision"] for s in scenarios}) == 1
+    assert len({scenario_revision(s) for s in scenarios}) == 1
     ledger = {"recorded_at": datetime.now(ZoneInfo("Asia/Singapore")).isoformat(timespec="seconds"),
               "source": "本轮真实只读链路；首次独立空缓存；其后按输入顺序共用同一文章缓存。",
               "ttl_days": 7, "scenarios": scenarios,

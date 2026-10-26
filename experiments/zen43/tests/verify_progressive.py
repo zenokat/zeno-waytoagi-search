@@ -67,6 +67,31 @@ class ProgressiveChecks(unittest.TestCase):
         """返回共用测试缓存的新工具上下文，模拟新提交或新主题。"""
         return Prototype(self.folder.name)
 
+    def test_continuation_fills_three_across_native_pages_and_months(self):
+        """首轮和续轮均凑满三条；第二轮自动跨原生页及月份，六篇文章不重复。"""
+        first = self.context().search(query="RAG")
+        second = self.context().search(cursor=first["next_cursor"])
+        self.assertEqual([r["article_id"] for r in first["results"]], ["a", "b", "c"])
+        self.assertEqual([r["article_id"] for r in second["results"]], ["d", "september", "late"])
+        self.assertEqual(second["status"], "finished")
+        self.assertIsNone(second["next_cursor"])
+
+    def test_comment_only_matches_are_filtered_before_filling_page(self):
+        """仅评论命中的文章不交付，也不暴露评论状态；其余正常结果补足三条。"""
+        def response(arguments):
+            """输入原生命令，给 a 设置评论链接；其他响应沿用测试来源。"""
+            result = self.respond(arguments)
+            if arguments[:2] == ["drive", "+search"]:
+                for row in result["data"]["results"]:
+                    if row["result_meta"]["token"] == "a":
+                        row["result_meta"]["url"] += "?comment_id=comment"
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            result = self.context().search(query="RAG")
+        self.assertEqual([r["article_id"] for r in result["results"]], ["b", "c", "d"])
+        self.assertNotIn("snippet_status", json.dumps(result))
+
     def test_progress_keeps_late_candidate_and_snippets(self):
         """首屏只取一页；本地续页后继续推进，较晚出现的十月文章不丢失、不重复。"""
         p = self.context()
@@ -77,7 +102,8 @@ class ProgressiveChecks(unittest.TestCase):
         found = list(result["results"])
         before = len(self.requests)
         result = self.context().search(cursor=result["next_cursor"])
-        self.assertEqual(len(self.requests), before)
+        self.assertGreater(len(self.requests), before)
+        self.assertEqual(len(result["results"]), 3)
         found.extend(result["results"])
         for _ in range(25):
             if not result["next_cursor"]:
@@ -103,15 +129,17 @@ class ProgressiveChecks(unittest.TestCase):
         self.assertEqual(len([a for a in self.requests if a[:2] == ["docs", "+fetch"]]), docs_before+1)
         self.assertTrue(all("outline" not in a and "full" not in a for a in self.requests))
 
-    def test_empty_native_page_does_not_fetch_second_batch_immediately(self):
-        """首批候选为空但原生可继续时，本次只取一批，不为填满结果连续请求。"""
-        response = {"data": {"results": [], "has_more": True, "page_token": "next"}}
-        with patch.object(daily, "run_cli", return_value=response):
+    def test_empty_native_page_continues_until_exhausted(self):
+        """空原生页仍可继续时自动续查，最终耗尽才交付空结果，不泄露中间空页。"""
+        responses = [{"data": {"results": [], "has_more": True, "page_token": "next"}},
+                     {"data": {"results": [], "has_more": False}}]
+        with patch.object(daily, "run_cli", side_effect=responses):
             p = self.context()
             result = p.search(query="RAG")
-        self.assertEqual(len(p.calls), 1)
+        self.assertEqual(len(p.calls), 2)
         self.assertEqual(result["results"], [])
-        self.assertIsNotNone(result["next_cursor"])
+        self.assertIsNone(result["next_cursor"])
+        self.assertEqual(result["status"], "finished")
 
     def test_warm_search_only_requests_native_candidates(self):
         """已有当月记录时只重新检索候选；摘要共享缓存，纯日期发现仍重读活跃月份。"""
@@ -129,18 +157,18 @@ class ProgressiveChecks(unittest.TestCase):
         discovery.search(since="2026-10-01")
         self.assertEqual(len(discovery.calls), 2)
 
-    def test_search_uses_old_cached_candidate_before_current_month(self):
-        """已有历史候选即使不足三条也直接交付，不为凑首屏请求当月。"""
+    def test_search_fills_short_cached_page_without_rereading_history(self):
+        """历史缓存不足三条时继续查当月补足，已匹配历史月份不重复读取。"""
         MonthlyLogs(self.context()).read("2026-09")
         p = self.context()
         result = p.search(query="RAG")
-        self.assertEqual([r["article_id"] for r in result["results"]], ["september"])
-        self.assertEqual(len(p.calls), 1)
-        self.assertEqual(p.diagnostics["months_read"], [])
+        self.assertEqual([r["article_id"] for r in result["results"]], ["a", "b", "c"])
+        self.assertEqual(p.diagnostics["months_read"], ["2026-10"])
+        self.assertTrue(any(a["article_id"] == "september" for a in p.diagnostics["record_actions"]))
         self.assertIsNotNone(result["next_cursor"])
 
-    def test_search_refresh_is_bounded_and_does_not_renew_month(self):
-        """多个候选过期时每次只刷新一条，月份耗尽仍可继续；不延长整月期限。"""
+    def test_search_refresh_fills_page_and_does_not_renew_month(self):
+        """过期候选逐条刷新到满页，末页不足三条仍可完成；不延长整月期限。"""
         with patch("time.time", return_value=1000000):
             logs = MonthlyLogs(self.context())
             logs.read("2026-10")
@@ -148,8 +176,8 @@ class ProgressiveChecks(unittest.TestCase):
         with patch("time.time", return_value=1000000 + HISTORY_TTL_SECONDS):
             p = self.context()
             result = p.search(query="RAG")
-            self.assertEqual([r["article_id"] for r in result["results"]], ["a"])
-            self.assertEqual(len(p.calls), 2)
+            self.assertEqual([r["article_id"] for r in result["results"]], ["a", "b", "c"])
+            self.assertEqual(len(p.calls), 4)
             self.assertIn("entrya", p.calls[1]["arguments"])
             session, generation = result["next_cursor"].split(":")
             path = p.cache / f"{session}-search-{generation}.json"
@@ -158,10 +186,10 @@ class ProgressiveChecks(unittest.TestCase):
             path.write_text(json.dumps(state))
             continued = self.context()
             next_result = continued.search(cursor=result["next_cursor"])
-            self.assertEqual([r["article_id"] for r in next_result["results"]], ["b"])
+            self.assertEqual([r["article_id"] for r in next_result["results"]], ["d"])
             self.assertEqual(len(continued.calls), 1)
-            self.assertIn("entryb", continued.calls[0]["arguments"])
-            self.assertIsNotNone(next_result["next_cursor"])
+            self.assertIn("entryd", continued.calls[0]["arguments"])
+            self.assertIsNone(next_result["next_cursor"])
         self.assertEqual(logs.cache_path("2026-10").read_text(), before)
 
     def test_cache_selection_filters_dates_before_deduplication(self):
@@ -177,8 +205,27 @@ class ProgressiveChecks(unittest.TestCase):
         result = p.search(query="RAG", since="2026-09-01", until="2026-09-30")
         self.assertIn("a", [r["article_id"] for r in result["results"]])
         self.assertTrue(all(r["date"].startswith("2026-09") for r in result["results"]))
-        self.assertEqual(len(p.calls), 1)
-        self.assertEqual(p.diagnostics["months_read"], [])
+        self.assertTrue(all(call["arguments"][:2] == ["drive", "+search"] for call in p.calls))
+        self.assertTrue(all(source["cache_hit"] for source in p.sources))
+
+    def test_date_search_fills_across_months_and_returns_short_final_page(self):
+        """纯日期查询自动跨月凑满，最后一页不足三条时正常结束且不重复文章。"""
+        first = self.context().search(since="2026-09-01", until="2026-10-24")
+        second = self.context().search(cursor=first["next_cursor"])
+        third = self.context().search(cursor=second["next_cursor"])
+        self.assertEqual([len(page["results"]) for page in (first, second, third)], [3, 3, 1])
+        self.assertEqual(third["status"], "finished")
+        self.assertIsNone(third["next_cursor"])
+        ids = [row["article_id"] for page in (first, second, third) for row in page["results"]]
+        self.assertEqual(len(set(ids)), 7)
+
+    def test_cyclic_native_pages_fail_instead_of_looping_to_fill(self):
+        """原生令牌循环时明确失败；凑页循环不能因重复空页一直等待。"""
+        responses = [{"data": {"results": [], "has_more": True, "page_token": token}}
+                     for token in ("one", "two", "one")]
+        with patch.object(daily, "run_cli", side_effect=responses):
+            with self.assertRaisesRegex(ValueError, "分页未前进"):
+                self.context().search(query="RAG")
 
     def test_old_cached_article_does_not_scan_newer_months(self):
         """旧文章已经在有效缓存中，即使从未检索它也应零请求返回；重复输入保留对应关系。"""

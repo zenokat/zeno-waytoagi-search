@@ -1,7 +1,7 @@
 """默认三条的渐进检索：保存候选与月度匹配进度，按需继续，不以创建月份丢弃文章。
 
 先按候选 token 定向匹配缓存；过期定点刷新，未知记录才逐月查找。
-一次提交最多推进一批候选、一条过期记录或一个月份（首轮可取候选再做一次日志动作）。
+一次提交按需推进候选、过期条目与月份，凑满三条或查完后才交付。
 来源与耗时诊断仅留上下文，Agent 只收到业务结果、继续标识及必要状态。
 """
 
@@ -29,14 +29,17 @@ def fetch_candidates(context, state):
         raise ValueError("原生搜索含 notice，需核对")
     for item in data.get("results", []):
         meta = item["result_meta"]
-        candidate = {"snippet": item.get("summary_highlighted", "")}
         if "comment_id" in meta.get("url", ""):
-            candidate = {"snippet_status": "comment_match_not_delivered"}
+            continue
+        candidate = {"snippet": item.get("summary_highlighted", "")}
         state["candidates"].setdefault(meta["token"], candidate)
     has_more = bool(data.get("has_more"))
     next_token = data.get("page_token")
-    if has_more and (not next_token or next_token == state["native_token"]):
+    seen_tokens = state.setdefault("native_tokens", [])
+    if has_more and (not next_token or next_token == state["native_token"] or next_token in seen_tokens):
         raise ValueError("原生分页未前进")
+    if has_more:
+        seen_tokens.append(next_token)
     state["native_token"] = next_token if has_more else None
     state["native_done"] = not has_more
     state["native_pages"] += 1
@@ -95,7 +98,7 @@ def pending_work(state):
 
 
 def search(context, query=None, since=None, until=None, cursor=None):
-    """执行一次查询或继续提交；返回最多三条业务结果、继续标识和状态，内部每步有界推进。"""
+    """执行查询或续查；内部凑满三条或耗尽工作，返回业务结果、继续标识和状态。"""
     logs, actions = MonthlyLogs(context), []
     if cursor:
         match = re.fullmatch(r"([a-f0-9]{24}):(\d+)", cursor)
@@ -105,6 +108,9 @@ def search(context, query=None, since=None, until=None, cursor=None):
         state = json.loads((context.cache / f"{session}-search-{generation}.json").read_text())
         if state["profile"] != context.profile:
             raise ValueError("续查必须使用原查询配置")
+        # 旧游标可能保存过仅评论候选；沿用进度时也按当前交付规则排除。
+        state["candidates"] = {key: value for key, value in state["candidates"].items()
+                               if value.get("snippet_status") != "comment_match_not_delivered"}
     else:
         if not query and not since and not until:
             raise ValueError("查询语句、日期范围至少一项")
@@ -129,7 +135,7 @@ def search(context, query=None, since=None, until=None, cursor=None):
             state["native_done"] = True
     expired = match_cached_candidates(logs, state, actions)
     rows = available_results(state)
-    if not rows:
+    while len(rows) < PAGE_SIZE:
         native, month = pending_work(state)
         # 两个方向交替推进，避免少数未关联候选迫使首屏扫描全部历史。
         if expired:
@@ -139,10 +145,12 @@ def search(context, query=None, since=None, until=None, cursor=None):
         elif month and (state["next_action"] == "month" or not native):
             fetch_month(logs, state)
             state["next_action"] = "native"
-        elif native and cursor:
+        elif native:
             fetch_candidates(context, state)
             state["next_action"] = "month"
             expired = match_cached_candidates(logs, state, actions)
+        else:
+            break
         rows = available_results(state)
     page = rows[:PAGE_SIZE]
     state["delivered"].extend(row["article_id"] for row in page)

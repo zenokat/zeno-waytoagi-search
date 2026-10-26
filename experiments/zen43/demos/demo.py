@@ -44,6 +44,12 @@ def section_nodes(sections):
     return [node for section in sections for node in [section, *section_nodes(section["children"])]]
 
 
+def scenario_revision(scenario):
+    """从 scenario 内部诊断取得修订；兼容旧证据中的业务字段，返回来源修订值。"""
+    diagnostics = scenario.get("diagnostics", {})
+    return diagnostics["revision"] if "revision" in diagnostics else scenario["output"]["revision"]
+
+
 def command_purpose(arguments, method):
     """根据真实 arguments 与工具 method 生成中文命令作用；返回说明字符串，不改变命令。"""
     options = dict(zip(arguments[2::2], arguments[3::2]))
@@ -115,15 +121,15 @@ def run_demo(output):
         print(name + "完成", flush=True)
         return result, p
 
-    search, first = capture("知识库检索", "默认最多 3 条；只取首批原生候选与当前月份日志，按需继续，不承诺全局日期严格排序。",
+    search, first = capture("知识库检索", "凑满 3 条或查完后返回；内部按需推进原生候选与日志月份，不承诺全局日期严格排序。",
         {"query": "RAG"}, "search", query="RAG")
-    assert first.diagnostics["native_pages"] == 1
+    assert first.diagnostics["native_pages"] >= 1
     assert len(search["results"]) <= 3 and search["next_cursor"]
-    assert all("snippet" in r or "snippet_status" in r for r in search["results"])
+    assert all("snippet" in r and "snippet_status" not in r for r in search["results"])
     second, continued = capture("检索下一页", "接续同一次查询；先交付已匹配但尚未返回的文章，必要时才继续取候选或读取月份。",
         {"cursor": "上一页返回的游标"}, "search", cursor=search["next_cursor"])
     assert not set(x["article_id"] for x in search["results"]) & set(x["article_id"] for x in second["results"])
-    checks["首屏工作量"] = "1 批原生候选 + 当月章节和近期日志；未扫描全部候选或历史月份"
+    checks["首屏工作量"] = "按需取得候选与月份，凑满 3 条或查完后返回"
     checks["渐进分页"] = "每页最多 3 条，前两页无重复；未匹配项保留，跨月不作为排除依据"
 
     warm_search, warm_context = capture("检索定向复用缓存", "重新执行原生搜索取得当前候选，随后按 token 命中已有记录；不重新读取当月日志。",
@@ -141,14 +147,14 @@ def run_demo(output):
     stale_month["fetched_at"] = time.time() - HISTORY_TTL_SECONDS - 1
     write_json(stale_path, stale_month)
     stale_before = stale_path.read_text()
-    stale_search, stale_context = capture("检索过期定点刷新", "原生候选命中过期记录，只刷新第一个已知条目并返回；其余待需要时继续，不一次刷新整批候选。",
+    stale_search, stale_context = capture("检索过期定点刷新", "原生候选命中过期记录，按需逐条刷新直到凑满一页；不一次刷新整批候选。",
         {"query": "RAG", "演示前置": "独立复制当月缓存并将年龄设为七天以前"}, "search",
         cache_override=stale_cache, query="RAG")
-    assert len(stale_search["results"]) == 1 and stale_search["next_cursor"]
+    assert len(stale_search["results"]) == 3 and stale_search["next_cursor"]
     assert stale_search["results"][0] == search["results"][0]
-    assert len(stale_context.calls) == 2 and "range" in stale_context.calls[1]["arguments"]
+    assert len(stale_context.calls) == 4 and all("range" in c["arguments"] for c in stale_context.calls[1:])
     assert stale_path.read_text() == stale_before
-    checks["检索定点刷新"] = "1 次 drive 搜索 + 1 次条目 range，未重读整月；整月期限保持不变"
+    checks["检索定点刷新"] = "1 次 drive 搜索 + 3 次条目 range，未重读整月；整月期限保持不变"
 
     dates_only, cached = capture("按日期发现", "先按日期选择月份，只读取 2026 年 9 月；月内实际遇到重复文章才保留最近一次。不附摘要。",
         {"since": "2026-09-01", "until": "2026-09-30"}, "search", since="2026-09-01", until="2026-09-30")
@@ -214,7 +220,7 @@ def run_demo(output):
         {"query": "鸡同鸭讲", "演示前置": "共享刚才旧文章摘要查找的缓存"}, "search", cache_override=cold_cache,
         query="鸡同鸭讲")
     assert old_article["article_id"] in [row["article_id"] for row in old_search["results"]]
-    assert len(old_search_context.calls) == 1 and old_search_context.diagnostics["months_read"] == []
+    assert all(c["arguments"][:2] == ["drive", "+search"] for c in old_search_context.calls)
     checks["跨工具复用"] = "摘要找到的旧文章可供检索直接匹配；仅 1 次 drive 搜索，0 次日志请求"
     checks["陌生文章缺口"] = f"旧文章首次 {len(cold_context.calls)} 次读取，再次 0 次；首次没有假装已知日志位置"
 
@@ -242,7 +248,7 @@ def run_demo(output):
     assert children and all(len(u["parents"]) == 1 for u in children)
     checks["章节层级"] = "H1 → H3 识别为父子两层"
 
-    located, _ = capture("全文检索", "按原文顺序展示命中章节树：共享祖先只出现一次，同一章节的片段合并为数组。只保留命中章节及祖先，不补未命中分支；OR 是任一关键词命中。",
+    located, located_context = capture("全文检索", "按原文顺序展示命中章节树：共享祖先只出现一次，同一章节的片段合并为数组。只保留命中章节及祖先，不补未命中分支；OR 是任一关键词命中。",
         {"article": SAMPLE, "keywords": ["MarkItDown", "MinerU"]}, "locate", article=SAMPLE, keywords=["MarkItDown", "MinerU"])
     located_nodes = section_nodes(located["match_tree"])
     located_hits = [h for node in located_nodes for h in node["hits"]]
@@ -253,11 +259,11 @@ def run_demo(output):
         if h["container_expanded"]:
             assert "<excerpt" not in h["snippet_xml"] and "MarkItDown" in h["snippet_xml"] and "MinerU" in h["snippet_xml"]
     # 单分支与 OR 的顶层命中集合比较，避免把嵌套节点数量说成独立命中数量。
-    single_a, _ = capture("单词 MarkItDown", "单独查询 MarkItDown；可与 OR 场景对照，普通段落、代码与标题保留原生命中块。",
+    single_a, single_a_context = capture("单词 MarkItDown", "单独查询 MarkItDown；可与 OR 场景对照，普通段落、代码与标题保留原生命中块。",
         {"article": SAMPLE, "keywords": ["MarkItDown"]}, "locate", article=SAMPLE, keywords=["MarkItDown"])
-    single_b, _ = capture("单词 MinerU", "单独查询 MinerU；同一容器内的多处命中合并为一个顶层单位。",
+    single_b, single_b_context = capture("单词 MinerU", "单独查询 MinerU；同一容器内的多处命中合并为一个顶层单位。",
         {"article": SAMPLE, "keywords": ["MinerU"]}, "locate", article=SAMPLE, keywords=["MinerU"])
-    assert located["revision"] == single_a["revision"] == single_b["revision"]
+    assert located_context.diagnostics["revision"] == single_a_context.diagnostics["revision"] == single_b_context.diagnostics["revision"]
     single_hits = [h for result in (single_a, single_b) for node in section_nodes(result["match_tree"]) for h in node["hits"]]
     assert {h["snippet_xml"] for h in located_hits} == {h["snippet_xml"] for h in single_hits}
     checks["OR 与容器"] = f"{len(located_hits)} 个顶层命中单位；并集相等，表格补全"

@@ -183,7 +183,7 @@ function renderResult(result,input={}){
     appendText(panel,'p','本次展开 '+(input.depth??1)+' 层，按真实父子关系计算。has_children 说明原文是否有子章节，children 只包含本次已展开的子章节。','muted small');
     if(result.parent){const origin=appendText(panel,'div','','result-state');appendText(origin,'h3','查询起点 · '+(result.parent.has_children?'有子章节':'已到底，没有子章节'));appendText(origin,'p',result.parent.unit_id,'path');}
     if(!result.outline.length)appendText(panel,'p','所选单位下没有子标题；仍可用输入的读取标识取得其正文。','empty');
-    renderStructureSections(panel,result.outline,result.article);
+    renderStructureSections(panel,result.outline,result.article??input.article);
   }
   if(result.match_tree){
     const nodes=flattenSections(result.match_tree);const hits=nodes.flatMap(node=>node.hits);const direct=nodes.filter(node=>node.hits.length).length;
@@ -192,7 +192,7 @@ function renderResult(result,input={}){
     const json=JSON.stringify(result,null,2);const bytes=new TextEncoder().encode(json).length;
     appendText(panel,'p','完整业务 JSON：'+Array.from(json).length.toLocaleString()+' 字符 / '+(bytes/1024).toFixed(1)+' KiB（UTF-8）。字符数不等于模型 token 数。','muted small');
     if(!nodes.length)appendText(panel,'p','本次原生查询未返回命中。','empty');
-    const tree=appendText(panel,'div','','match-tree');renderMatchedSections(tree,result.match_tree,result.article);
+    const tree=appendText(panel,'div','','match-tree');renderMatchedSections(tree,result.match_tree,result.article??input.article);
   }
   if(result.markdown_path){appendText(panel,'h3',result.scope==='full'?'全文已取得':'所选章节已取得');appendText(panel,'p','正文文件已生成，图片引用保留在正文原位置。','result-state');appendText(panel,'p',result.warnings.length?'素材存在未完成项，详见结构化结果。':'本次素材均已获取。','muted small');appendText(panel,'p','Markdown 保存位置','section-label');appendText(panel,'p',result.markdown_path,'path');}
 }

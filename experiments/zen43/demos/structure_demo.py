@@ -12,7 +12,7 @@ import tempfile
 import time
 from zoneinfo import ZoneInfo
 
-from experiments.zen43.demos.demo import build_html, command_purpose, section_nodes
+from experiments.zen43.demos.demo import build_html, command_purpose, section_nodes, scenario_revision
 from experiments.zen43.core.prototype import Prototype
 from experiments.zen43.core.source import SAMPLE, write_json, xml_root
 from experiments.zen43.core.sections import section_model
@@ -80,7 +80,7 @@ def run_demo(output, base):
     scenarios.append(default)
     deep, context = capture(output, NAMES[1], "展开两层：原文 H1 → H3 是实际父子两层，不按 H 数字截断。", article=SAMPLE, depth=2)
     scenarios.append(deep)
-    assert default["output"]["revision"] == deep["output"]["revision"]
+    assert scenario_revision(default) == scenario_revision(deep)
     units = context.diagnostics["structure_units"]
     assert [n["unit_id"] for n in default["output"]["outline"]] == [u["id"] for u in units if u["depth"] == 1]
     assert [n["unit_id"] for n in section_nodes(deep["output"]["outline"])] == [u["id"] for u in units if u["depth"] <= 2]
@@ -92,7 +92,7 @@ def run_demo(output, base):
         if depth is not None:
             arguments["depth"] = depth
         scenario, _ = capture(output, name, "从“动手安装吧”向下看；不重复父章，也不包含其他兄弟章。本样本的两节安装说明没有更深子标题，因此展开一层和两层相同。", **arguments)
-        assert scenario["output"]["revision"] == deep["output"]["revision"]
+        assert scenario_revision(scenario) == scenario_revision(deep)
         assert [n["unit_id"] for n in section_nodes(scenario["output"]["outline"])] == [u["id"] for u in children]
         scenarios.append(scenario)
     for name, section, explanation in [
@@ -101,17 +101,18 @@ def run_demo(output, base):
     ]:
         scenario, _ = capture(output, name, explanation, article=SAMPLE, parent_id=section)
         assert scenario["output"]["outline"] == []
-        assert scenario["output"]["revision"] == deep["output"]["revision"]
+        assert scenario_revision(scenario) == scenario_revision(deep)
         scenarios.append(scenario)
     no_headings, _ = capture(output, NAMES[6], "真实文章“云舒：和 AI 鸡同鸭讲…”没有章节标题，整体用 @document 表示，不把加粗文字冒充目录。", article=NO_HEADINGS)
     assert [n["unit_id"] for n in no_headings["output"]["outline"]] == ["@document"]
     scenarios.append(no_headings)
     empty, _ = capture(output, NAMES[7], "指定 @document 后没有下级标题；可用同一标识读取整篇无标题正文。", article=NO_HEADINGS, parent_id="@document")
-    assert empty["output"]["outline"] == [] and empty["output"]["revision"] == no_headings["output"]["revision"]
+    assert empty["output"]["outline"] == [] and scenario_revision(empty) == scenario_revision(no_headings)
     scenarios.append(empty)
     # 直接复用上轮已确认全文检索返回的父章与叶子标识，核对两工具衔接；不改第三工具证据。
-    located = next(s for s in evidence["scenarios"] if s["name"] == "仅局部正文命中")["output"]
-    assert located["revision"] == deep["output"]["revision"]
+    located_scenario = next(s for s in evidence["scenarios"] if s["name"] == "仅局部正文命中")
+    located = located_scenario["output"]
+    assert scenario_revision(located_scenario) == scenario_revision(deep)
     assert [n["unit_id"] for n in section_nodes(located["match_tree"])] == [parent["id"], children[0]["id"]]
     for scenario in scenarios:
         # 结构仍读取完整 XML；同一文章已有快照时零请求，不能沿用缓存接入前的固定计数。
@@ -128,7 +129,7 @@ def run_demo(output, base):
             assert node["has_children"] == (node["unit_id"] in parent_ids)
             fields = {"unit_id", "kind", "has_children", "children"}
             assert set(node) == fields | ({"title"} if node["kind"] == "section" else set())
-    capability = check_native_scopes(output, units, parent, deep["output"]["revision"])
+    capability = check_native_scopes(output, units, parent, scenario_revision(deep))
     capability["observed_at"] = scenarios[-1]["recorded_at"]
     write_json(output / "structure-capability-check.json", capability)
     checks = evidence["checks"]

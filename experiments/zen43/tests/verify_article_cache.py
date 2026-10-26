@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from experiments.zen43.core.prototype import Prototype
 from experiments.zen43.core.source import daily
+from experiments.zen43.demos.body_demo import review_body
 
 
 class ArticleCacheChecks(unittest.TestCase):
@@ -43,14 +44,14 @@ class ArticleCacheChecks(unittest.TestCase):
         self.calls.append(arguments)
         options = dict(zip(arguments[2::2], arguments[3::2]))
         if arguments[:2] == ["docs", "+media-preview"]:
-            path = Path(self.folder.name) / "downloaded.png"
+            path = (Path(self.folder.name) / "downloaded.png").resolve()
             path.write_bytes(b"image")
             return {"data": {"saved_path": str(path), "content_type": "image/png", "size_bytes": 5}}
-        content = self.full
+        content = self.full.replace("章节", f"章节 {self.revision}")
         if options["--scope"] == "keyword":
-            content = '<p id="body">关键词正文</p>'
+            content = f'<p id="body">关键词正文 {self.revision}</p>'
         elif options["--doc-format"] == "markdown":
-            content = '# 章节\n关键词正文\n![](https://feishu.cn/file/image-token)'
+            content = f'# 章节 {self.revision}\n关键词正文\n![](https://feishu.cn/file/image-token)'
         return {"data": {"document": {"revision_id": self.revision, "content": content}}}
 
     def context(self, profile=None):
@@ -84,7 +85,7 @@ class ArticleCacheChecks(unittest.TestCase):
         self.now += 1
         self.revision = 2
         result = self.context().structure("article")
-        self.assertEqual(result["revision"], 2)
+        self.assertEqual(result["outline"][0]["title"], "章节 2")
         self.assertEqual(len(self.calls), 2)
         self.context().structure("article")
         self.assertEqual(len(self.calls), 2)
@@ -104,10 +105,10 @@ class ArticleCacheChecks(unittest.TestCase):
         self.context().structure("article")
         self.revision = 2
         located = self.context().locate("article", ["新关键词"])
-        self.assertEqual(located["revision"], 2)
+        self.assertIn("关键词正文 2", located["match_tree"][0]["hits"][0]["snippet_xml"])
         self.assertEqual(len(self.calls), 3)
         result = self.context().structure("article")
-        self.assertEqual(result["revision"], 2)
+        self.assertEqual(result["outline"][0]["title"], "章节 2")
         self.assertEqual(len(self.calls), 3)
 
     def test_url_token_aliases_share_cache_but_profiles_do_not(self):
@@ -134,8 +135,17 @@ class ArticleCacheChecks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "修订不一致"):
             self.context().read("article", unit_ids=["chapter"])
         result = self.context().read("article", unit_ids=["chapter"])
-        self.assertEqual(result["revision"], 2)
+        self.assertIn("# 章节 2", Path(result["markdown_path"]).read_text())
         self.assertEqual(len(self.calls), 4)
+
+    def test_body_demo_verifies_labeled_markdown_using_internal_revision(self):
+        """演示核对新正文标记和内部修订，业务返回不再提供修订号也能完成检查。"""
+        context = self.context()
+        arguments = {"article": "article", "unit_ids": ["chapter"]}
+        result = context.read(**arguments)
+        review = review_body(result, context, arguments)
+        self.assertTrue(review["markdown"].startswith('> unit_ids: ["chapter"]\n\n'))
+        self.assertEqual(len(review["images"]), 1)
 
 
 if __name__ == "__main__":
