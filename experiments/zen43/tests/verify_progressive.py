@@ -10,8 +10,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from prototype import Prototype, daily
-from monthly_logs import HISTORY_TTL_SECONDS, MonthlyLogs
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily
+from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MonthlyLogs
 
 
 def log_xml(month, tokens):
@@ -28,10 +29,10 @@ class ProgressiveChecks(unittest.TestCase):
         """建立独立临时缓存、固定日期及外部 CLI 替身；无返回值。"""
         self.folder = tempfile.TemporaryDirectory(prefix="zen43-check-")
         self.addCleanup(self.folder.cleanup)
-        self.anchor = json.loads(Path(__file__).with_name("monthly-fixtures.json").read_text())
+        self.anchor = json.loads((Path(__file__).resolve().parents[1] / "data/monthly-fixtures.json").read_text())
         self.by_id = {v["block_id"]: k for k, v in self.anchor["months"].items()}
         self.requests = []
-        self.clock = patch("monthly_logs.datetime")
+        self.clock = patch("experiments.zen43.core.monthly_logs.datetime")
         mocked = self.clock.start()
         self.date_clock = mocked
         mocked.now.return_value.date.return_value = date(2026, 10, 24)
@@ -91,13 +92,13 @@ class ProgressiveChecks(unittest.TestCase):
 
     def test_history_reused_across_topics_until_seven_days(self):
         """同月份跨主题复用且不查修订；第七天到期后只重新读该月。"""
-        with patch("monthly_logs.time.time", return_value=1000000):
+        with patch("experiments.zen43.core.monthly_logs.time.time", return_value=1000000):
             self.context().search(query="RAG", since="2026-09-01", until="2026-09-30")
         docs_before = len([a for a in self.requests if a[:2] == ["docs", "+fetch"]])
-        with patch("monthly_logs.time.time", return_value=1000000 + HISTORY_TTL_SECONDS - 1):
+        with patch("experiments.zen43.core.monthly_logs.time.time", return_value=1000000 + HISTORY_TTL_SECONDS - 1):
             self.context().search(query="Agent", since="2026-09-01", until="2026-09-30")
         self.assertEqual(len([a for a in self.requests if a[:2] == ["docs", "+fetch"]]), docs_before)
-        with patch("monthly_logs.time.time", return_value=1000000 + HISTORY_TTL_SECONDS):
+        with patch("experiments.zen43.core.monthly_logs.time.time", return_value=1000000 + HISTORY_TTL_SECONDS):
             self.context().search(since="2026-09-01", until="2026-09-30")
         self.assertEqual(len([a for a in self.requests if a[:2] == ["docs", "+fetch"]]), docs_before+1)
         self.assertTrue(all("outline" not in a and "full" not in a for a in self.requests))

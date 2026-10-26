@@ -9,7 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from prototype import Prototype, daily
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily
 
 
 class BodyImageChecks(unittest.TestCase):
@@ -70,6 +71,28 @@ class BodyImageChecks(unittest.TestCase):
         self.assertEqual(body.count("[图片获取失败]"), 2)
         self.assertNotIn('src="image-token"', body)
         self.assertEqual(context.diagnostics["body_images"]["image-token"]["status"], "failed")
+        self.assertEqual(len(result["warnings"]), 1)
+
+    def test_merged_table_keeps_downloaded_image_reference(self):
+        """合并单元格转为语义 HTML 时仍保留已下载图片的本地路径；验证完整 read 流程。"""
+        self.full = ('<h1 id="chapter">章节</h1><table id="table"><tr><td colspan="2">'
+                     '<img id="image" src="image-token"/></td></tr><tr><td>A</td><td>B</td></tr></table>')
+        self.markdown = self.full
+        result, body, context = self.read_body()
+        saved = context.diagnostics["body_images"]["image-token"]["saved_path"]
+        self.assertIn('src="' + saved + '"', body)
+        self.assertIn('colspan="2"', body)
+        self.assertTrue(Path(saved).is_file())
+        self.assertEqual(result["warnings"], [])
+
+    def test_merged_table_marks_failed_image_in_place(self):
+        """合并单元格中的图片下载失败时，HTML 回退保留原位置的失败标记与业务警告。"""
+        self.failed = True
+        self.full = ('<h1 id="chapter">章节</h1><table id="table"><tr><td colspan="2">'
+                     '<img id="image" src="image-token"/></td></tr><tr><td>A</td><td>B</td></tr></table>')
+        self.markdown = self.full
+        result, body, _ = self.read_body()
+        self.assertIn("[图片获取失败]", body)
         self.assertEqual(len(result["warnings"]), 1)
 
 

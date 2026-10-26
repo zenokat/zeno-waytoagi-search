@@ -10,7 +10,8 @@ from pathlib import Path
 import tempfile
 import time
 
-from prototype import Prototype, daily, write_json, xml_root
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily, write_json, xml_root
 
 
 def variants(sample, include_controls):
@@ -56,7 +57,7 @@ def main():
     parser.add_argument("--output", default=tempfile.mkdtemp(prefix="zen43-summary-lookup-", dir="/tmp"))
     args = parser.parse_args()
     output = Path(args.output).resolve()
-    samples = json.loads(Path(__file__).with_name("summary-lookup-samples.json").read_text())
+    samples = json.loads((Path(__file__).resolve().parents[1] / "data/summary-lookup-samples.json").read_text())
     observations = []
     for index, sample in enumerate(samples):
         for label, scope, options in variants(sample, index == 0):

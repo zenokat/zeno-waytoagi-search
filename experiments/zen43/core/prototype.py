@@ -1,202 +1,20 @@
-"""ZEN-43 可丢弃技术原型：五个工具的真实只读 lark-cli 组合。
+"""五工具统一 Python 入口：协调只读请求、缓存、章节与正文交付。
 
-复用相邻 daily 脚本的 CLI 校验和行内文字解析；仅依赖 Python 标准库。
-缓存、去评论后的原生响应、正文和图片只写入执行环境临时目录。
-本文件验证主要路径，不是已发布接口；异常产品规则由 ZEN-44 决定。
+共享解析位于 source/sections，正文表达位于 markdown；命令行入口位于上级 prototype.py。
+source/pool 方法仅供历史整页日志实验保留，不用于当前检索或摘要入口。
 """
 
-import argparse
-import copy
-from datetime import date, datetime
+from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
-import re
-import sys
 import tempfile
 import time
 from xml.etree import ElementTree as ET
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import waytoagi_daily as daily
-
-SPACE = "7226178700923011075"
-SAMPLE = "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd"
-PARSER_VERSION = 2
-
-
-def write_json(path, value):
-    """把 value 写入 path 指定的 UTF-8 JSON 文件；返回绝对路径，写入失败直接报错。"""
-    path = Path(path).resolve()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
-    return str(path)
-
-
-def xml_root(content):
-    """把 CLI 的多根 XML 字符串 content 包为根节点；返回可遍历树，解析失败报错。"""
-    root = ET.fromstring("<root>" + content + "</root>")
-    if len(root) == 1 and root[0].tag == "fragment":
-        return root[0]
-    return root
-
-
-def localize_image_reference(content, token, replacement):
-    """将 content 中 token 对应图片引用改为 replacement 本地路径或失败标记；返回新正文，不改其他文字。"""
-    content = content.replace("https://feishu.cn/file/" + token, replacement)
-    # 容器里的图片仍是 HTML img，src 为原生 token；定点改属性以保留混合 Markdown 的其余内容。
-    pattern = r'(<img\b[^>]*?\ssrc=)(["\x27])' + re.escape(token) + r'\2'
-    return re.sub(pattern, lambda match: match[1] + match[2] + replacement + match[2], content)
-
-
-def strip_comments(response):
-    """原地剥除 response 中评论 sidecar、评论正文和锚点；返回剥除数量，不保留评论文本。"""
-    count = 0
-    document = response.get("data", {}).get("document", {})
-    references = document.get("reference_map", {})
-    removed = references.pop("comments", {})
-    count += len(removed)
-    content = document.get("content", "")
-    content, n = re.subn(r"<comment\b[^>]*>.*?</comment>", "", content, flags=re.S)
-    count += n
-    content = re.sub(r"</?(?:comment-ref|comment-anchor|comment-start|comment-end)\b[^>]*>", "", content)
-    content = re.sub(r'\s+comment(?:-ids?|-refs?)="[^"]*"', "", content)
-    document["content"] = content
-    return count
-
-
-def top_blocks(root):
-    """从 root 还原文档顶层块序列；展开标题包装与列表包装，保留表格等完整容器。"""
-    blocks = []
-    for element in root:
-        if element.tag in {"ul", "ol"}:
-            blocks.extend(top_blocks(element))
-        elif re.fullmatch(r"h[1-6]", element.tag):
-            heading = copy.deepcopy(element)
-            for child in list(heading):
-                if child.tag not in daily.INLINE_TAGS:
-                    heading.remove(child)
-            blocks.append(heading)
-            wrapper = ET.Element("root")
-            wrapper.extend(child for child in element if child.tag not in daily.INLINE_TAGS)
-            blocks.extend(top_blocks(wrapper))
-        elif element.tag != "title":
-            blocks.append(element)
-    return blocks
-
-
-def section_model(content):
-    """由完整 content 建立顶层块、实际章节树和块归属；返回 blocks、units、positions 三元组。"""
-    blocks = top_blocks(xml_root(content))
-    units, stack, positions = [], [], {}
-    for index, block in enumerate(blocks):
-        for nested in block.iter():
-            if nested.get("id"):
-                positions[nested.get("id")] = index
-        if not re.fullmatch(r"h[1-6]", block.tag):
-            continue
-        rank = int(block.tag[1:])
-        while stack and stack[-1]["rank"] >= rank:
-            stack.pop()["end"] = index
-        unit = {"id": block.get("id"), "title": daily.inline_content(block)[0],
-                "rank": rank, "depth": len(stack) + 1, "start": index, "end": len(blocks),
-                "parents": [ancestor["id"] for ancestor in stack], "kind": "section"}
-        units.append(unit)
-        stack.append(unit)
-    first = units[0]["start"] if units else len(blocks)
-    if first:
-        # 无标题单位只标类型，不生成可能被误当作原文标题的文字。
-        units.insert(0, {"id": "@opening" if units else "@document",
-                         "depth": 1, "parents": [], "start": 0, "end": first, "kind": "opening" if units else "document"})
-    return blocks, units, positions
-
-
-def matched_section_tree(units, positions, hits):
-    """将 hits 合并为命中章节树；输入完整 units 和块 positions，返回按原文排列的根节点数组。
-
-    每个片段只放在最具体的所属章节；祖先只保留一份标题和读取标识。
-    不含命中也不是祖先的章节被省略，避免将局部检索变成全文目录。
-    """
-    grouped, retained = {}, set()
-    for hit in sorted(hits, key=lambda item: positions[item["block_id"]]):
-        index = positions[hit["block_id"]]
-        chain = [unit for unit in units if unit["start"] <= index < unit["end"]]
-        if not chain:
-            raise ValueError("命中块没有对应的章节或特殊读取单位")
-        # 块 ID 只供内部定位与排序；业务片段不重复暴露独立 block_id 字段。
-        grouped.setdefault(chain[-1]["id"], []).append({key: value for key, value in hit.items() if key != "block_id"})
-        retained.update(unit["id"] for unit in chain)
-    roots, nodes = [], {}
-    # units 已按文章位置排列，父章必然先于子章；片段排序不依赖服务端返回顺序。
-    for unit in units:
-        if unit["id"] not in retained:
-            continue
-        node = {"unit_id": unit["id"],
-                "hits": grouped.get(unit["id"], []), "children": []}
-        if "title" in unit:
-            node["title"] = unit["title"]
-        nodes[unit["id"]] = node
-        target = nodes[unit["parents"][-1]]["children"] if unit["parents"] else roots
-        target.append(node)
-    return roots
-
-
-def public_error(error):
-    """将内部 error 映射为调用方可理解的错误说明；返回文本，不包含 CLI、内部标识或诊断路径。"""
-    if isinstance(error, KeyError):
-        return "所选读取单位不存在，请重新获取文章结构后再试。"
-    if isinstance(error, OSError):
-        return "本地文件读取或保存失败，本次未完成交付。"
-    message = str(error)
-    if isinstance(error, ET.ParseError) or re.search(r"cli|block_id|excerpt|tips|原生|ZEN-44|scope|token", message, re.I):
-        return "来源内容暂无法完整读取，本次未完成交付。"
-    return message
-
-
-def log_entries(content, source, current_day):
-    """从日志 content 按日期标题和引用关联原摘要；输入来源与当天日期，返回记录、未解析项、年份路由。"""
-    root = xml_root(content)
-    year, batch = None, None
-    records, unsupported, routes = [], [], {}
-    for element in root.iter():
-        if element.tag == "cite":
-            route = re.fullmatch(r"\s*(\d{4})\s*年历史更新[（(]归档[）)]\s*", element.get("title", ""))
-            if route:
-                routes[int(route[1])] = daily.inline_content(element)[1][0]["url"]
-        if re.fullmatch(r"h[1-6]", element.tag):
-            label = daily.inline_content(element)[0].strip()
-            month = re.fullmatch(r"(\d{4})\s*年\s*\d{1,2}\s*月", label)
-            if month:
-                year = int(month[1])
-                batch = None
-            day = re.fullmatch(r"(?:(\d{4})\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日", label)
-            if day:
-                y = int(day[1]) if day[1] else year or current_day.year
-                batch = date(y, int(day[2]), int(day[3]))
-                if not day[1] and year is None and batch > current_day:
-                    batch = date(y - 1, int(day[2]), int(day[3]))
-        if element.tag not in {"li", "p"} or not batch or batch < daily.SUPPORTED_FROM:
-            continue
-        # 只处理本块的行内内容；容器中的子列表由遍历单独处理，避免重复。
-        text, links = daily.inline_content(element)
-        if not text.strip():
-            continue
-        references = [link for link in links if link["kind"] == "document_reference"]
-        if len(references) != 1:
-            unsupported.append({"date": str(batch), "block_id": element.get("id"), "reason": "非单篇文章引用"})
-            continue
-        ref = references[0]
-        if ref["url"] == daily.HISTORY_URL and text.startswith("阅读更多："):
-            continue
-        prefix = "《" + ref["title"] + "》"
-        if not text.lstrip().startswith(prefix):
-            unsupported.append({"date": str(batch), "block_id": element.get("id"), "reason": "标题包裹格式未覆盖"})
-            continue
-        summary = text.lstrip()[len(prefix):]
-        records.append({"article_id": ref["url"].rsplit("/", 1)[-1], "url": ref["url"],
-                        "title": ref["title"], "date": str(batch), "summary": summary,
-                        "log_url": source, "log_block_id": element.get("id")})
-    return records, unsupported, routes
+from .source import SPACE, PARSER_VERSION, daily, log_entries, strip_comments, write_json, xml_root
+from .sections import matched_section_tree, section_model, top_blocks
+from .markdown import localize_image_reference
 
 
 class Prototype:
@@ -298,17 +116,17 @@ class Prototype:
 
     def search(self, query=None, since=None, until=None, cursor=None):
         """执行一次默认三条的渐进检索；输入查询、日期或继续标识，返回精简业务结果。"""
-        from progressive_search import search
+        from experiments.zen43.core.progressive_search import search
         return search(self, query, since, until, cursor)
 
     def summaries(self, articles):
         """读取 articles 的原摘要；先复用记录，过期定点刷新，陌生文章才按月查找。"""
-        from summary_reader import summaries
+        from experiments.zen43.core.summary_reader import summaries
         return summaries(self, articles)
 
     def article_fetch(self, article, scope="full", format="xml", **options):
         """输入 article、scope、format 与范围选项；返回后三工具共用的七天文章快照内容。"""
-        from article_cache import fetch_article
+        from experiments.zen43.core.article_cache import fetch_article
         return fetch_article(self, article, scope, format, **options)
 
     def structure(self, article, parent_id=None, depth=1):
@@ -370,7 +188,7 @@ class Prototype:
             index = positions.get(block_id)
             if index is None:
                 raise ValueError("命中块无法映射到当前全文，不猜位置")
-            from container_preview import public_snippet
+            from experiments.zen43.core.markdown import public_snippet
             output.append({"block_id": block_id, "snippet_xml": public_snippet(content), "container_expanded": bool(container_id)})
         result["match_tree"] = matched_section_tree(units, positions, output)
         return result
@@ -417,7 +235,7 @@ class Prototype:
                         continue
                     if token not in images:
                         try:
-                            from article_cache import preview_article_image
+                            from experiments.zen43.core.article_cache import preview_article_image
                             images[token] = preview_article_image(self, article, token, folder / token)
                         except ValueError as error:
                             images[token] = {"status": "failed", "reason": str(error)}
@@ -425,7 +243,7 @@ class Prototype:
                     saved = images[token].get("saved_path")
                     replacement = str(Path(saved).resolve()) if saved else "图片获取失败"
                     content = localize_image_reference(content, token, replacement)
-            from container_preview import format_markdown
+            from experiments.zen43.core.markdown import format_markdown
             markdown.append(format_markdown(content, images, warnings))
             ranges.append({"start_block_id": first, "end_block_id": last, "top_level_blocks": right - left,
                            "unit_ids": [u["id"] for u in units if left <= u["start"] < right]})
@@ -436,50 +254,3 @@ class Prototype:
         return {"article": article, "revision": full["revision_id"], "markdown_path": str(path),
                 "warnings": warnings,
                 "scope": "full" if not unit_ids and not start_unit_id and not end_unit_id else "selected_sections"}
-
-
-def main():
-    """解析命令行五入口与参数，打印完整 JSON 状态；返回退出码，执行证据写入临时目录。"""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("tool", choices=["search", "summaries", "locate", "structure", "read"])
-    parser.add_argument("--article", default=SAMPLE)
-    parser.add_argument("--articles", nargs="+")
-    parser.add_argument("--query")
-    parser.add_argument("--since")
-    parser.add_argument("--until")
-    parser.add_argument("--cursor")
-    parser.add_argument("--keywords", nargs="+", default=["MarkItDown", "MinerU"])
-    parser.add_argument("--parent-id")
-    parser.add_argument("--unit-ids", nargs="+")
-    parser.add_argument("--start-unit-id")
-    parser.add_argument("--end-unit-id")
-    parser.add_argument("--depth", type=int, default=1)
-    parser.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "zen43-PROTOTYPE-wipe-me"))
-    parser.add_argument("--profile")
-    args = parser.parse_args()
-    prototype = Prototype(args.cache_dir, args.profile)
-    try:
-        if args.tool == "search":
-            result = prototype.search(args.query, args.since, args.until, args.cursor)
-        elif args.tool == "summaries":
-            result = prototype.summaries(args.articles or [args.article])
-        elif args.tool == "structure":
-            result = prototype.structure(args.article, args.parent_id, args.depth)
-        elif args.tool == "locate":
-            result = prototype.locate(args.article, args.keywords)
-        else:
-            result = prototype.read(args.article, args.unit_ids, args.start_unit_id, args.end_unit_id)
-        write_json(prototype.run_dir / "calls.json", prototype.calls)
-        write_json(prototype.run_dir / "diagnostics.json", prototype.diagnostics)
-        # 五个入口均直接交付业务 JSON；调用证据和诊断保存在上面的临时文件。
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
-    except (ValueError, KeyError, OSError, ET.ParseError) as error:
-        write_json(prototype.run_dir / "calls.json", prototype.calls)
-        write_json(prototype.run_dir / "error.json", {"type": type(error).__name__, "error": str(error)})
-        print(json.dumps({"status": "prototype_error", "error": public_error(error)}, ensure_ascii=False))
-        return 2
-
-
-if __name__ == "__main__":
-    sys.exit(main())

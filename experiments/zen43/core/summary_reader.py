@@ -11,8 +11,8 @@ import time
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
-from prototype import daily, log_entries, write_json, xml_root
-from monthly_logs import HISTORY_TTL_SECONDS, MONTH_CACHE_VERSION, MonthlyLogs, merge_latest, months_between
+from experiments.zen43.core.source import daily, log_entries, write_json, xml_root
+from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MONTH_CACHE_VERSION, MonthlyLogs, merge_latest, months_between
 
 RECORD_CACHE_VERSION = 1
 

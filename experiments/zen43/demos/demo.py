@@ -11,8 +11,10 @@ from pathlib import Path
 import tempfile
 import time
 
-from prototype import Prototype, SAMPLE, section_model, write_json, xml_root
-from monthly_logs import MonthlyLogs, HISTORY_TTL_SECONDS
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import SAMPLE, write_json, xml_root
+from experiments.zen43.core.sections import section_model
+from experiments.zen43.core.monthly_logs import MonthlyLogs, HISTORY_TTL_SECONDS
 
 
 def assert_images(result, diagnostics):
@@ -107,7 +109,7 @@ def run_demo(output):
                           "total_seconds": total_seconds}
         if method == "read":
             # 按需载入正文审阅核对，前四工具不读取或内嵌正文文件。
-            from body_demo import review_body
+            from experiments.zen43.demos.body_demo import review_body
             scenario["body_review"] = review_body(result, p, arguments)
         scenarios.append(scenario)
         print(name + "完成", flush=True)
@@ -197,7 +199,7 @@ def run_demo(output):
     assert refreshed_reuse.calls == []
     checks["摘要定点刷新"] = "过期后 1 次 range；整月缓存未改动；再读 0 次请求"
 
-    old_article = json.loads(Path(__file__).with_name("summary-lookup-samples.json").read_text())[0]
+    old_article = json.loads((Path(__file__).resolve().parents[1] / "data/summary-lookup-samples.json").read_text())[0]
     cold_cache = output / "PROTOTYPE-wipe-me-summary-cold"
     cold_summary, cold_context = capture("陌生旧文章摘要", "独立空缓存，仅输入文章 token；没有任何日志位置，只能逐月向前查找。这是仍存在的性能缺口。",
         {"articles": [old_article["article_id"]], "演示前置": "独立空缓存，不提供已知日期或日志块"}, "summaries",

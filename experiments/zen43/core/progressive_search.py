@@ -11,9 +11,9 @@ import json
 import re
 import time
 
-from prototype import SPACE, daily, write_json
-from monthly_logs import HISTORY_TTL_SECONDS, MonthlyLogs, merge_latest, months_between
-from summary_reader import cached_records, refresh_record
+from experiments.zen43.core.source import SPACE, daily, write_json
+from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MonthlyLogs, merge_latest, months_between
+from experiments.zen43.core.summary_reader import cached_records, refresh_record
 
 PAGE_SIZE = 3
 

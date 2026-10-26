@@ -13,8 +13,9 @@ import statistics
 import tempfile
 import time
 
-from prototype import Prototype, SPACE, daily, log_entries, write_json
-from demo import command_purpose
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import SPACE, daily, log_entries, write_json
+from experiments.zen43.demos.demo import command_purpose
 
 
 def search_candidates(context, query):
@@ -222,7 +223,7 @@ def main():
     if args.rounds < 1 or args.months < 1:
         parser.error("轮数和月份数必须为正整数")
     today = datetime.now(daily.reading_timezone()).date()
-    fixture = json.loads(Path(__file__).with_name("monthly-fixtures.json").read_text())
+    fixture = json.loads((Path(__file__).resolve().parents[1] / "data/monthly-fixtures.json").read_text())
     months = sorted((m for m in fixture["months"] if m <= today.strftime("%Y-%m")), reverse=True)[:args.months]
     if not months or months[0] != today.strftime("%Y-%m"):
         raise ValueError("实验月份锚点不含当月，请重新采集样本")

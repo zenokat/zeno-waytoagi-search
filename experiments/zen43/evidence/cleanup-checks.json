@@ -1,0 +1,129 @@
+{
+  "accepted_baseline": "1f87b3d704cfd0ac1dad6e0dda4c5753fca0b02d",
+  "preserved_files": [
+    {
+      "path": "data/monthly-fixtures.json",
+      "sha256": "6b76703857b86c9f260cc97e74cad601ea0162bc9b943b2bbbd9097b737d8f36"
+    },
+    {
+      "path": "data/summary-lookup-samples.json",
+      "sha256": "34c42f3848c576ded23478b70f7647ea0663c36a54d1df4bc88300cf4de9c84a"
+    },
+    {
+      "path": "demos/demo_template.html",
+      "sha256": "17967f0ffa408cddafe2f02c5ecb59e6399d27aa745a59e361cdc0dcc9506633"
+    },
+    {
+      "path": "evidence/README-history.md",
+      "sha256": "f303640b0080cc4e75222ba1c730883e6e32300a01cc89903c48e1c0c409b852"
+    },
+    {
+      "path": "evidence/article-cache-checks.json",
+      "sha256": "afe175b5d4a35f86ef4d863218b529dc7d063618f2cb5efc80f159eddcf74465"
+    },
+    {
+      "path": "evidence/body-checks.json",
+      "sha256": "3693cc6966d0683b74104f4040c8e9c2a46519eb717efade44bf82a4cdb11729"
+    },
+    {
+      "path": "evidence/container-checks.json",
+      "sha256": "e8bc5be29603693b4a992616c7887f7340fd7ace3b6fcc18eeef4df1f3b2de42"
+    },
+    {
+      "path": "evidence/demo.html",
+      "sha256": "4de3d45b9791e11d38e6aedf2027b4a7f91c6ced66d77cd11f5ce261aab17393"
+    },
+    {
+      "path": "evidence/fulltext-capability-check.json",
+      "sha256": "80ea7a60f149f90dea938db4a56188681c0789b430f99d7c2a429303b4f4806c"
+    },
+    {
+      "path": "evidence/interface-checks.json",
+      "sha256": "5d399567bef5477b40782314a66723556a868cb3affb1768ecf3ecad8f5e26f6"
+    },
+    {
+      "path": "evidence/monthly-experiment.html",
+      "sha256": "199602b83ba000029e9fbc9fa81dbdf4bbbc6d4731b1d7d547187aa105800581"
+    },
+    {
+      "path": "evidence/monthly-narrow-experiment.html",
+      "sha256": "0148725a22c4e9ce04c0f5a95b6d94a979e2e1d0d8014cada214abfe256a352a"
+    },
+    {
+      "path": "evidence/monthly-narrow-results.json",
+      "sha256": "4a76c0a95a346a7083edffb32b8585283aceb040f827b0e24a604369e937f8e9"
+    },
+    {
+      "path": "evidence/monthly-results.json",
+      "sha256": "4a4f421237e71d44f1778de473a7f062c4845fcd9a832fa37ecd08b72549bcd2"
+    },
+    {
+      "path": "evidence/observed-checks.json",
+      "sha256": "4b39053f3fb226cb502120ad2ce592f5fb82761373fc9d840a6659035e1b1f9a"
+    },
+    {
+      "path": "evidence/public-interface-checks.json",
+      "sha256": "acc4de3bcc338acafff6b9bd893248838f3d0abad49b39646821d61628488bfe"
+    },
+    {
+      "path": "evidence/reading-format-checks.json",
+      "sha256": "26cf0ea24a1c659d09623628f732f866dcc154fa987e3cfd5c6b266717f257ed"
+    },
+    {
+      "path": "evidence/structure-capability-check.json",
+      "sha256": "855bde487855657ced32e11be8b680e930361e5d7f7dc8f53bcd6e0c8ce82075"
+    },
+    {
+      "path": "evidence/summary-lookup-results.json",
+      "sha256": "075eb0cc6d16fa8f9938b023d0328e333896ac81b6ce1b7ff1448ba6bc411b67"
+    },
+    {
+      "path": "evidence/time-boundary-evidence.json",
+      "sha256": "37e8a005d09f550876124c72a64a0df3daa83af018089aa653fc294bb0445cd7"
+    },
+    {
+      "path": "evidence/timings.json",
+      "sha256": "2fe384f799fb8eb1a31eb312327760ce7f5637c3d6a8a3febdad1165f5a18fc2"
+    },
+    {
+      "path": "evidence/untitled-checks.json",
+      "sha256": "64cf0985dd584b72f05503a3d9cba75e450796e283dd0ce040922ae1a6e0cc45"
+    }
+  ],
+  "unchanged_definitions_excluding_imports": [
+    "Prototype",
+    "write_json",
+    "xml_root",
+    "strip_comments",
+    "log_entries",
+    "top_blocks",
+    "section_model",
+    "matched_section_tree",
+    "localize_image_reference",
+    "main",
+    "public_error"
+  ],
+  "imported_modules": 24,
+  "cli_help_entries": 8,
+  "saved_scenarios_unchanged": 32,
+  "runtime_month_anchors": 17,
+  "network_requests": 0,
+  "checked_on": "2026-10-26",
+  "review_fixed_point": "e87086f3903ec13781354948153f93441a39bd3b",
+  "tests": {
+    "prototype": 53,
+    "daily": 34,
+    "updates": 15,
+    "total": 102
+  },
+  "regressions_reproduced_before_fix": [
+    "structure_demo rejected valid cache hits",
+    "merged-cell HTML dropped downloaded image src",
+    "merged-cell HTML dropped failed-image marker"
+  ],
+  "remaining_format_defects": [
+    "nested inline image or unsupported content can disappear without warning",
+    "inline code containing XML can be converted"
+  ],
+  "limits": "本轮仅离线验证；未新增来源采集或浏览器视觉验收。旧证据字节与计时保持；格式边界留给 ZEN-57/44。"
+}

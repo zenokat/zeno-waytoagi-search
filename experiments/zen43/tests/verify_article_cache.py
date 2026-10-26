@@ -5,7 +5,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from prototype import Prototype, daily
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily
 
 
 class ArticleCacheChecks(unittest.TestCase):
@@ -33,7 +34,7 @@ class ArticleCacheChecks(unittest.TestCase):
                 kwargs["dir"] = self.folder.name
             return original(*args, **kwargs)
 
-        folder_patch = patch("prototype.tempfile.mkdtemp", side_effect=body_folder)
+        folder_patch = patch("experiments.zen43.core.prototype.tempfile.mkdtemp", side_effect=body_folder)
         folder_patch.start()
         self.addCleanup(folder_patch.stop)
 

@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import time
 
-from prototype import daily, log_entries, write_json
+from experiments.zen43.core.source import daily, log_entries, write_json
 
 HISTORY_TTL_SECONDS = 7 * 24 * 60 * 60
 MONTH_CACHE_VERSION = 1
@@ -42,7 +42,7 @@ class MonthlyLogs:
         """输入 Prototype 调用上下文；初始化当天日期、锚点及单次调用内的读取去重状态。"""
         self.context = context
         self.today = datetime.now(daily.reading_timezone()).date()
-        self.anchors = json.loads(Path(__file__).with_name("monthly-fixtures.json").read_text())
+        self.anchors = json.loads((Path(__file__).resolve().parents[1] / "data/monthly-fixtures.json").read_text())
         self.loaded = {}
         self.recent = None
 
