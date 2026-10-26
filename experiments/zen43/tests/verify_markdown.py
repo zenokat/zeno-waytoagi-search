@@ -3,7 +3,7 @@
 import unittest
 from xml.etree import ElementTree as ET
 
-from container_preview import render_block, render_table, format_markdown, public_snippet
+from experiments.zen43.core.markdown import render_block, render_table, format_markdown, public_snippet
 
 
 class MarkdownChecks(unittest.TestCase):

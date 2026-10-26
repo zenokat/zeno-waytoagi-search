@@ -12,7 +12,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from prototype import Prototype, daily, main
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily
+from experiments.zen43.prototype import main
 
 
 class InterfaceChecks(unittest.TestCase):

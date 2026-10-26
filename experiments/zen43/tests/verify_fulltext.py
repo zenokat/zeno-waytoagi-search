@@ -10,8 +10,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from demo import compact_result, section_nodes
-from prototype import Prototype, daily, main, xml_root
+from experiments.zen43.demos.demo import compact_result, section_nodes
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily, xml_root
+from experiments.zen43.prototype import main
 
 
 class FulltextChecks(unittest.TestCase):

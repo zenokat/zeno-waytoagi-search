@@ -12,8 +12,10 @@ import tempfile
 import time
 from zoneinfo import ZoneInfo
 
-from demo import build_html, command_purpose, section_nodes
-from prototype import Prototype, SAMPLE, section_model, write_json, xml_root
+from experiments.zen43.demos.demo import build_html, command_purpose, section_nodes
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import SAMPLE, write_json, xml_root
+from experiments.zen43.core.sections import section_model
 
 NAMES = ["整篇默认一层", "篇章结构获取", "局部默认一层", "局部展开两层",
          "叶子章节结构", "开篇正文结构", "无标题文章结构", "无标题单位下钻"]
@@ -112,8 +114,11 @@ def run_demo(output, base):
     assert located["revision"] == deep["output"]["revision"]
     assert [n["unit_id"] for n in section_nodes(located["match_tree"])] == [parent["id"], children[0]["id"]]
     for scenario in scenarios:
-        assert len(scenario["native"]) == 1
-        assert scenario["native"][0]["elapsed_seconds"] <= scenario["total_seconds"]
+        # 结构仍读取完整 XML；同一文章已有快照时零请求，不能沿用缓存接入前的固定计数。
+        snapshots = scenario["diagnostics"]["article_cache"]
+        assert len(snapshots) == 1 and snapshots[0]["scope"] == "full"
+        assert len(scenario["native"]) == int(not snapshots[0]["cache_hit"])
+        assert all(call["elapsed_seconds"] <= scenario["total_seconds"] for call in scenario["native"])
         complete_units = scenario["diagnostics"]["structure_units"]
         parent_ids = {u["parents"][-1] for u in complete_units if u["parents"]}
         selected = scenario["input"].get("parent_id")
@@ -154,7 +159,7 @@ def run_demo(output, base):
 def main():
     """接收已有 HTML 与输出目录，真实验证第四工具；打印结果路径，无返回值。"""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", default=str(Path(__file__).with_name("demo.html")))
+    parser.add_argument("--base", default=str((Path(__file__).resolve().parents[1] / "evidence/demo.html")))
     parser.add_argument("--output", default=tempfile.mkdtemp(prefix="zen43-structure-demo-", dir="/tmp"))
     args = parser.parse_args()
     print(json.dumps(run_demo(args.output, args.base), ensure_ascii=False, indent=2))

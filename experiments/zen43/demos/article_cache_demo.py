@@ -7,8 +7,9 @@ import time
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from prototype import Prototype, write_json
-from demo import command_purpose
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import write_json
+from experiments.zen43.demos.demo import command_purpose
 
 
 def run_demo(output):

@@ -10,8 +10,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from prototype import Prototype, daily, main
-from demo import section_nodes
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.source import daily
+from experiments.zen43.prototype import main
+from experiments.zen43.demos.demo import section_nodes
 
 
 class StructureChecks(unittest.TestCase):

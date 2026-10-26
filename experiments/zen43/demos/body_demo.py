@@ -15,10 +15,13 @@ import tempfile
 import time
 from zoneinfo import ZoneInfo
 
-from demo import assert_images, build_html, command_purpose
-from article_cache import load_article_cache
-from prototype import Prototype, section_model, write_json, localize_image_reference
-from container_preview import format_markdown
+from experiments.zen43.demos.demo import assert_images, build_html, command_purpose
+from experiments.zen43.core.article_cache import load_article_cache
+from experiments.zen43.core.prototype import Prototype
+from experiments.zen43.core.sections import section_model
+from experiments.zen43.core.source import write_json
+from experiments.zen43.core.markdown import localize_image_reference
+from experiments.zen43.core.markdown import format_markdown
 
 NAMES = ["正文读取", "完整章节范围", "全文读取"]
 
@@ -190,7 +193,7 @@ def run_demo(output, base):
 def main():
     """解析已有 HTML 与临时输出目录，真实执行三个正文场景；打印产物路径，无返回值。"""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", default=str(Path(__file__).with_name("demo.html")))
+    parser.add_argument("--base", default=str((Path(__file__).resolve().parents[1] / "evidence/demo.html")))
     parser.add_argument("--output", default=tempfile.mkdtemp(prefix="zen43-body-demo-", dir="/tmp"))
     args = parser.parse_args()
     print(json.dumps(run_demo(args.output, args.base), ensure_ascii=False, indent=2))

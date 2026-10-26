@@ -11,7 +11,7 @@ from pathlib import Path
 import time
 from urllib.parse import urlparse
 
-from prototype import write_json
+from experiments.zen43.core.source import write_json
 
 ARTICLE_TTL_SECONDS = 7 * 24 * 60 * 60
 ARTICLE_CACHE_VERSION = 1

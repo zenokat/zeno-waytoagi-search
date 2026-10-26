@@ -1,16 +1,21 @@
-"""原型正文表达：优先将已取得的容器转成 Markdown，并生成可独立审阅的样张。
+"""正文与命中片段的表达转换：优先 Markdown，保留来源内容和图片引用。
 
-覆盖当前文章已观测的结构，供默认正文工具处理混合 Markdown；不承诺通用无损转换。
-保留原始证据；未知结构由正文入口在原位置标记并报告警告。
+此模块只转换已取得的内容；样张命令独立放在 demos/container_preview.py。
+当前覆盖已验证样本，不承诺所有嵌套格式无损转换。
 """
 
-import argparse
-import json
-from pathlib import Path
 import re
 from xml.etree import ElementTree as ET
 
-from prototype import daily, section_model
+from .source import daily, xml_root
+
+
+def localize_image_reference(content, token, replacement):
+    """将 content 中 token 对应图片引用改为 replacement 本地路径或失败标记；返回新正文，不改其他文字。"""
+    content = content.replace("https://feishu.cn/file/" + token, replacement)
+    # 容器里的图片仍是 HTML img，src 为原生 token；定点改属性以保留混合 Markdown 的其余内容。
+    pattern = r'(<img\b[^>]*?\ssrc=)(["\x27])' + re.escape(token) + r'\2'
+    return re.sub(pattern, lambda match: match[1] + match[2] + replacement + match[2], content)
 
 
 def inline_markdown(element):
@@ -108,7 +113,6 @@ def render_block(element, images):
 
 def public_snippet(content, images=None):
     """输入原生 XML 片段，返回去除内部标识的内容 XML；引用用可见名称与链接，读取入口仍是外层 unit_id。"""
-    from prototype import xml_root
     root = xml_root(content)
     for element in root.iter():
         if element.tag == "cite":
@@ -117,10 +121,18 @@ def public_snippet(content, images=None):
             element.attrib.clear()
             element.set("href", links[0]["url"])
         elif element.tag == "img" and images is not None:
-            saved = images.get(element.get("src"), {}).get("saved_path")
+            source = element.get("src")
+            saved = images.get(source, {}).get("saved_path")
+            # 正文在转换前已本地化 src；HTML 回退只接受本轮图片映射中的已下载路径。
+            if not saved:
+                saved = next((image["saved_path"] for image in images.values()
+                              if image.get("saved_path") and image["saved_path"] == source), None)
             element.attrib = {"alt": element.get("alt", "")}
             if saved:
                 element.set("src", saved)
+            elif source == "图片获取失败":
+                element.tag, element.text = "span", "[图片获取失败]"
+                element.attrib.clear()
         else:
             element.attrib = {key: value for key, value in element.attrib.items() if key in {"href", "alt", "rowspan", "colspan"}}
     return "".join(ET.tostring(element, encoding="unicode") for element in root)
@@ -163,40 +175,3 @@ def format_markdown(content, images, warnings):
             buffered.append(line)
     output.append(convert("".join(buffered)))
     return "".join(output)
-
-
-def build_preview(xml_path, result_path, output, diagnostics_path=None):
-    """输入原生响应、业务结果、output 和可选内部诊断；按选区生成样张，返回绝对路径，兼容旧证据。"""
-    source = json.loads(Path(xml_path).read_text())["data"]["document"]
-    result = json.loads(Path(result_path).read_text())
-    diagnostics = json.loads(Path(diagnostics_path).read_text()) if diagnostics_path else result
-    if source["revision_id"] != result["revision"] or result["warnings"]:
-        raise ValueError("来源修订或素材状态不适合生成本次对照")
-    blocks, _, positions = section_model(source["content"])
-    parts = ["> 阅读形式对照样张：由同修订已取得的 XML 本地转换，采用正文工具相同的 Markdown 优先规则。",
-             "> 来源：" + result["article"]]
-    ranges = diagnostics["body_ranges"] if "body_ranges" in diagnostics else result["actual_ranges"]
-    for actual in ranges:
-        left, right = positions[actual["start_block_id"]], positions[actual["end_block_id"]] + 1
-        for block in blocks[left:right]:
-            rendered = render_block(block, diagnostics.get("body_images", result.get("images", {})))
-            if rendered:
-                parts.append(rendered)
-    path = Path(output).resolve()
-    path.write_text("\n\n".join(parts) + "\n", encoding="utf-8")
-    return str(path)
-
-
-def main():
-    """解析本地证据与输出路径，打印样张位置；不发起网络调用，无返回值。"""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--xml", required=True)
-    parser.add_argument("--result", required=True)
-    parser.add_argument("--output", required=True)
-    parser.add_argument("--diagnostics")
-    args = parser.parse_args()
-    print(build_preview(args.xml, args.result, args.output, args.diagnostics))
-
-
-if __name__ == "__main__":
-    main()
