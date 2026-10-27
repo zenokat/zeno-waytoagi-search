@@ -1,0 +1,1276 @@
+{
+  "verified_at": "2026-10-27T21:08:08.163269+08:00",
+  "baseline": "be0eb30",
+  "scope": "接入批量真实创建时间，未知文章创建月优先、未命中逐月向现在查；公开接口保持。",
+  "metadata_contract": {
+    "command": "lark-cli drive metas batch_query --as user --format json",
+    "batch_limit": 200,
+    "input_doc_type": "wiki",
+    "response_identity": "request_doc_info.doc_token",
+    "time_field": "create_time (Unix seconds)",
+    "timezone": "Asia/Singapore",
+    "per_document_unavailable": "fallback to descending months; diagnostics only",
+    "request_failure": "error, not an empty success"
+  },
+  "automated_checks": {
+    "prototype_before": 69,
+    "prototype_after": 76,
+    "daily": 34,
+    "updates": 15,
+    "python_total": 125,
+    "node_template": "new/legacy structure and locate inputs; old/new table checks visible",
+    "red_before_green": [
+      "old article summary: expected 2 requests, observed 18",
+      "search: expected creation month 2025-06, observed 2026-10"
+    ],
+    "commands": [
+      "python3 -m unittest discover -s experiments/zen43/tests -p 'verify_*.py'",
+      "python3 -m unittest discover -s tests -p 'test_waytoagi_daily.py'",
+      "python3 -m unittest discover -s tests -p 'test_waytoagi_updates.py'",
+      "node experiments/zen43/tests/verify_template.cjs",
+      "git diff --check"
+    ]
+  },
+  "reviews": {
+    "standards": "0 new findings; independently verified 125 checks and template",
+    "spec": "0 new findings; independently verified 76 prototype checks"
+  },
+  "live_checks": {
+    "identity": "existing lark-cli user session; read-only requests",
+    "old_article_cold_requests": 2,
+    "old_article_warm_requests": 0,
+    "search_first_page_results": 3,
+    "search_final_page_results": 1,
+    "search_total_unique_results": 4,
+    "duplicate_article_ids": 0,
+    "repeated_month_reads_in_session": 0,
+    "scenarios": [
+      {
+        "label": "old-summary-cold",
+        "method": "summaries",
+        "inputs": {
+          "articles": [
+            "W1Lkw5pjyijyRHk99rMcy3VHnXf"
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "input": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "url": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "title": "云舒：和AI鸡同鸭讲了100次后，我干脆给自己写了一个“教练”提示词",
+              "date": "2025-06-30",
+              "summary": "在借助AI重构“提示词管理助手”架构时，作者遭遇诸多难题。AI生成的代码不实用，人工沟通又困难重重，只因给AI的上下文信息不足。偶然灵感闪现，作者创造“AI协作教练”提示词，先与之深入交流，获取精准指令，再让其他AI执行，效率大幅提升。作者分享了使用方式，并指出在AI时代，提升与AI协作能力才是关键，为大家提供了高效运用AI的新思路。 ",
+              "status": "found"
+            }
+          ]
+        },
+        "seconds": 2.798,
+        "calls": [
+          {
+            "arguments": [
+              "drive",
+              "metas",
+              "batch_query",
+              "--data",
+              "{\"request_docs\": [{\"doc_token\": \"W1Lkw5pjyijyRHk99rMcy3VHnXf\", \"doc_type\": \"wiki\"}]}",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.468,
+            "elapsed_seconds": 1.47,
+            "revision": null,
+            "content_chars": 0,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "BfAedG7YgonKHwxbQPLcVspAnzf",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.321,
+            "elapsed_seconds": 2.793,
+            "revision": 70,
+            "content_chars": 37945,
+            "comments_removed": 0
+          }
+        ],
+        "diagnostics": {
+          "creation_months": {
+            "W1Lkw5pjyijyRHk99rMcy3VHnXf": {
+              "month": "2025-06",
+              "fallback": null
+            }
+          },
+          "sources": [
+            {
+              "month": "2025-06",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 56,
+              "cache_age_seconds": null
+            }
+          ],
+          "months_read": [
+            "2025-06"
+          ],
+          "summary_actions": [
+            {
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "mode": "monthly_lookup",
+              "month": "2025-06"
+            }
+          ]
+        }
+      },
+      {
+        "label": "old-summary-warm",
+        "method": "summaries",
+        "inputs": {
+          "articles": [
+            "W1Lkw5pjyijyRHk99rMcy3VHnXf"
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "input": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "url": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "title": "云舒：和AI鸡同鸭讲了100次后，我干脆给自己写了一个“教练”提示词",
+              "date": "2025-06-30",
+              "summary": "在借助AI重构“提示词管理助手”架构时，作者遭遇诸多难题。AI生成的代码不实用，人工沟通又困难重重，只因给AI的上下文信息不足。偶然灵感闪现，作者创造“AI协作教练”提示词，先与之深入交流，获取精准指令，再让其他AI执行，效率大幅提升。作者分享了使用方式，并指出在AI时代，提升与AI协作能力才是关键，为大家提供了高效运用AI的新思路。 ",
+              "status": "found"
+            }
+          ]
+        },
+        "seconds": 0.001,
+        "calls": [],
+        "diagnostics": {
+          "creation_months": {},
+          "sources": [],
+          "months_read": [],
+          "summary_actions": [
+            {
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "mode": "cached_record",
+              "date": "2025-06-30"
+            }
+          ]
+        }
+      },
+      {
+        "label": "search-cold",
+        "method": "search",
+        "inputs": {
+          "query": "MarkItDown"
+        },
+        "result": {
+          "results": [
+            {
+              "article_id": "AyupwGFq0i73bfkIFw9cuuwvnyg",
+              "url": "https://waytoagi.feishu.cn/wiki/AyupwGFq0i73bfkIFw9cuuwvnyg",
+              "title": "Grok Bot 应用指南实操案例：闲鱼上架、小红书做图、找工具、做短视频、整理收藏",
+              "date": "2026-09-13",
+              "snippet": "帮内容工作室整理 PowerToys、<h>MarkItDown</h> 和 changedetection.io，查官方仓库和文档。"
+            },
+            {
+              "article_id": "HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+              "url": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+              "title": "【知识管理必看】让 Agent 读懂 PDF 的两个免费工具",
+              "date": "2026-07-22",
+              "snippet": "今天介绍两个免费开源工具： <h>MarkItDown</h> 和 MinerU 。"
+            },
+            {
+              "article_id": "ESFKwcchxi3ubPkNVeZcjuXEnfm",
+              "url": "https://waytoagi.feishu.cn/wiki/ESFKwcchxi3ubPkNVeZcjuXEnfm",
+              "title": "劝一句：龙虾越火，越应该研究Skill，千万别跑偏！附送乔帮主精选Skills",
+              "date": "2026-03-07",
+              "snippet": "整合了多个开源项目，比如好友tenglin的NotebookLM-py、微软的<h>Markitdown</h>等。"
+            }
+          ],
+          "next_cursor": "b28d84117c833f2ce2f013a2:1",
+          "status": "can_continue"
+        },
+        "seconds": 8.23,
+        "calls": [
+          {
+            "arguments": [
+              "drive",
+              "+search",
+              "--query",
+              "MarkItDown",
+              "--space-ids",
+              "7226178700923011075",
+              "--sort",
+              "create_time",
+              "--page-size",
+              "20",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 0.932,
+            "elapsed_seconds": 0.934,
+            "revision": null,
+            "content_chars": 0,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "drive",
+              "metas",
+              "batch_query",
+              "--data",
+              "{\"request_docs\": [{\"doc_token\": \"AyupwGFq0i73bfkIFw9cuuwvnyg\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"HwMqw2TTpirl1Ykh5MhcfMEXnxd\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"Njnpw5BWIiwaVEk1ta0c6y62nTf\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"KgVxwodnkiah2PkzMFxcYdX4nKc\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"ESFKwcchxi3ubPkNVeZcjuXEnfm\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"BCpPwg1OIi7DsOk9RdLcQlunn7c\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"ZI3AwNdS7iY92zkU6WDcRP7Ynnd\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"U123wCoA0iSTyKkchhec1qsenJF\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"P8QSwjxHYii54RkVRwOcbo9bn6d\", \"doc_type\": \"wiki\"}]}",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 0.596,
+            "elapsed_seconds": 1.533,
+            "revision": null,
+            "content_chars": 0,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "XQcDdv2BUodYSZx2X8rc6gpUnOc",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.633,
+            "elapsed_seconds": 3.167,
+            "revision": 3298,
+            "content_chars": 88296,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "MfSCddjxqombRwxgxGBcZl04ncb",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.665,
+            "elapsed_seconds": 4.842,
+            "revision": 3298,
+            "content_chars": 93647,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "Eg23dx88moPENbxGcMNcPTBMnGg",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.526,
+            "elapsed_seconds": 6.376,
+            "revision": 3298,
+            "content_chars": 92923,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "Z3u2dEvhto1bd1xGMJZcFHiFnfg",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.833,
+            "elapsed_seconds": 8.218,
+            "revision": 3298,
+            "content_chars": 108384,
+            "comments_removed": 0
+          }
+        ],
+        "diagnostics": {
+          "creation_months": {
+            "AyupwGFq0i73bfkIFw9cuuwvnyg": {
+              "month": "2026-09",
+              "fallback": null
+            },
+            "HwMqw2TTpirl1Ykh5MhcfMEXnxd": {
+              "month": "2026-07",
+              "fallback": null
+            },
+            "Njnpw5BWIiwaVEk1ta0c6y62nTf": {
+              "month": "2026-07",
+              "fallback": null
+            },
+            "KgVxwodnkiah2PkzMFxcYdX4nKc": {
+              "month": "2026-06",
+              "fallback": null
+            },
+            "ESFKwcchxi3ubPkNVeZcjuXEnfm": {
+              "month": "2026-03",
+              "fallback": null
+            },
+            "BCpPwg1OIi7DsOk9RdLcQlunn7c": {
+              "month": "2026-01",
+              "fallback": null
+            },
+            "ZI3AwNdS7iY92zkU6WDcRP7Ynnd": {
+              "month": "2026-01",
+              "fallback": null
+            },
+            "U123wCoA0iSTyKkchhec1qsenJF": {
+              "month": "2025-09",
+              "fallback": null
+            },
+            "P8QSwjxHYii54RkVRwOcbo9bn6d": {
+              "month": "2025-03",
+              "fallback": null
+            }
+          },
+          "sources": [
+            {
+              "month": "2026-09",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 165,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-07",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 188,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-06",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 177,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-03",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 192,
+              "cache_age_seconds": null
+            }
+          ],
+          "record_actions": [],
+          "native_pages": 1,
+          "native_candidates": 9,
+          "months_read": [
+            "2026-09",
+            "2026-07",
+            "2026-06",
+            "2026-03"
+          ],
+          "unmatched_candidates": 6,
+          "delivered": 3
+        }
+      },
+      {
+        "label": "search-warm",
+        "method": "search",
+        "inputs": {
+          "query": "MarkItDown"
+        },
+        "result": {
+          "results": [
+            {
+              "article_id": "AyupwGFq0i73bfkIFw9cuuwvnyg",
+              "url": "https://waytoagi.feishu.cn/wiki/AyupwGFq0i73bfkIFw9cuuwvnyg",
+              "title": "Grok Bot 应用指南实操案例：闲鱼上架、小红书做图、找工具、做短视频、整理收藏",
+              "date": "2026-09-13",
+              "snippet": "帮内容工作室整理 PowerToys、<h>MarkItDown</h> 和 changedetection.io，查官方仓库和文档。"
+            },
+            {
+              "article_id": "HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+              "url": "https://waytoagi.feishu.cn/wiki/HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+              "title": "【知识管理必看】让 Agent 读懂 PDF 的两个免费工具",
+              "date": "2026-07-22",
+              "snippet": "今天介绍两个免费开源工具： <h>MarkItDown</h> 和 MinerU 。"
+            },
+            {
+              "article_id": "ESFKwcchxi3ubPkNVeZcjuXEnfm",
+              "url": "https://waytoagi.feishu.cn/wiki/ESFKwcchxi3ubPkNVeZcjuXEnfm",
+              "title": "劝一句：龙虾越火，越应该研究Skill，千万别跑偏！附送乔帮主精选Skills",
+              "date": "2026-03-07",
+              "snippet": "整合了多个开源项目，比如好友tenglin的NotebookLM-py、微软的<h>Markitdown</h>等。"
+            }
+          ],
+          "next_cursor": "9ec576ecb4264a9b7bea1109:1",
+          "status": "can_continue"
+        },
+        "seconds": 0.893,
+        "calls": [
+          {
+            "arguments": [
+              "drive",
+              "+search",
+              "--query",
+              "MarkItDown",
+              "--space-ids",
+              "7226178700923011075",
+              "--sort",
+              "create_time",
+              "--page-size",
+              "20",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 0.882,
+            "elapsed_seconds": 0.883,
+            "revision": null,
+            "content_chars": 0,
+            "comments_removed": 0
+          }
+        ],
+        "diagnostics": {
+          "sources": [],
+          "record_actions": [
+            {
+              "article_id": "AyupwGFq0i73bfkIFw9cuuwvnyg",
+              "mode": "cached_record",
+              "date": "2026-09-13"
+            },
+            {
+              "article_id": "HwMqw2TTpirl1Ykh5MhcfMEXnxd",
+              "mode": "cached_record",
+              "date": "2026-07-22"
+            },
+            {
+              "article_id": "ESFKwcchxi3ubPkNVeZcjuXEnfm",
+              "mode": "cached_record",
+              "date": "2026-03-07"
+            }
+          ],
+          "native_pages": 1,
+          "native_candidates": 9,
+          "months_read": [],
+          "unmatched_candidates": 6,
+          "delivered": 3
+        }
+      },
+      {
+        "label": "mixed-summary",
+        "method": "summaries",
+        "inputs": {
+          "articles": [
+            "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+            "YTt3wPPIeixEK5kbJPnc0YL7nTf",
+            "DhAzwYRuTi8jack9kbocPD94nEe"
+          ]
+        },
+        "result": {
+          "results": [
+            {
+              "input": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "url": "https://waytoagi.feishu.cn/wiki/W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "title": "云舒：和AI鸡同鸭讲了100次后，我干脆给自己写了一个“教练”提示词",
+              "date": "2025-06-30",
+              "summary": "在借助AI重构“提示词管理助手”架构时，作者遭遇诸多难题。AI生成的代码不实用，人工沟通又困难重重，只因给AI的上下文信息不足。偶然灵感闪现，作者创造“AI协作教练”提示词，先与之深入交流，获取精准指令，再让其他AI执行，效率大幅提升。作者分享了使用方式，并指出在AI时代，提升与AI协作能力才是关键，为大家提供了高效运用AI的新思路。 ",
+              "status": "found"
+            },
+            {
+              "input": "YTt3wPPIeixEK5kbJPnc0YL7nTf",
+              "article_id": "YTt3wPPIeixEK5kbJPnc0YL7nTf",
+              "url": "https://waytoagi.feishu.cn/wiki/YTt3wPPIeixEK5kbJPnc0YL7nTf",
+              "title": "《100 个问题》系列丛书",
+              "date": "2026-08-25",
+              "summary": "都说提示词已死，AI 越聊越笨。作者整理了《关于提示工程的100个问题》，带你看清提示工程当下真实面貌。",
+              "status": "found"
+            },
+            {
+              "input": "DhAzwYRuTi8jack9kbocPD94nEe",
+              "article_id": "DhAzwYRuTi8jack9kbocPD94nEe",
+              "url": "https://waytoagi.feishu.cn/wiki/DhAzwYRuTi8jack9kbocPD94nEe",
+              "title": "给大一新生的三万字World Models 和 World-Action Models 入学指南",
+              "date": "2026-10-15",
+              "summary": "World Model 最近越来越火，但很多人只知道它能“预测未来”，再往下就容易被强化学习、隐空间和视频生成等概念劝退。这份三万字指南梳理了 220 多项研究、六类技术路线及机器人、自动驾驶、游戏等应用，也直面“视频逼真是否等于理解物理”的争议。适合刚入门的学生和想补全研究版图的开发者，用一篇建立完整认知框架。",
+              "status": "found"
+            }
+          ]
+        },
+        "seconds": 4.702,
+        "calls": [
+          {
+            "arguments": [
+              "drive",
+              "metas",
+              "batch_query",
+              "--data",
+              "{\"request_docs\": [{\"doc_token\": \"YTt3wPPIeixEK5kbJPnc0YL7nTf\", \"doc_type\": \"wiki\"}, {\"doc_token\": \"DhAzwYRuTi8jack9kbocPD94nEe\", \"doc_type\": \"wiki\"}]}",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 0.502,
+            "elapsed_seconds": 0.504,
+            "revision": null,
+            "content_chars": 0,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "NvjhdbpJCoT2D4xanB8cTBaPnGg",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.78,
+            "elapsed_seconds": 2.286,
+            "revision": 3298,
+            "content_chars": 86829,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "IRnEdz6kNoBP5zxdZKxcTBT8nwe",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.39,
+            "elapsed_seconds": 3.685,
+            "revision": 3298,
+            "content_chars": 33408,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/QPe5w5g7UisbEkkow8XcDmOpn8e",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "ZweodGwa8oKukcxBhRncSEFCnlx",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.008,
+            "elapsed_seconds": 4.697,
+            "revision": 126622,
+            "content_chars": 26282,
+            "comments_removed": 0
+          }
+        ],
+        "diagnostics": {
+          "creation_months": {
+            "YTt3wPPIeixEK5kbJPnc0YL7nTf": {
+              "month": "2026-08",
+              "fallback": null
+            },
+            "DhAzwYRuTi8jack9kbocPD94nEe": {
+              "month": "2026-10",
+              "fallback": null
+            }
+          },
+          "sources": [
+            {
+              "month": "2026-08",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 168,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-10",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": true,
+              "records": 119,
+              "cache_age_seconds": null
+            }
+          ],
+          "months_read": [
+            "2026-08",
+            "2026-10"
+          ],
+          "summary_actions": [
+            {
+              "article_id": "W1Lkw5pjyijyRHk99rMcy3VHnXf",
+              "mode": "cached_record",
+              "date": "2025-06-30"
+            },
+            {
+              "article_id": "YTt3wPPIeixEK5kbJPnc0YL7nTf",
+              "mode": "monthly_lookup",
+              "month": "2026-08"
+            },
+            {
+              "article_id": "DhAzwYRuTi8jack9kbocPD94nEe",
+              "mode": "monthly_lookup",
+              "month": "2026-10"
+            }
+          ]
+        }
+      },
+      {
+        "label": "search-continuation-1",
+        "method": "search",
+        "inputs": {
+          "cursor": "b28d84117c833f2ce2f013a2:1"
+        },
+        "result": {
+          "results": [
+            {
+              "article_id": "BCpPwg1OIi7DsOk9RdLcQlunn7c",
+              "url": "https://waytoagi.feishu.cn/wiki/BCpPwg1OIi7DsOk9RdLcQlunn7c",
+              "title": "贾栾：把厚厚的PDF变成AI知识库：一个普通人也能用的技能",
+              "date": "2026-01-25",
+              "snippet": "pdf-2-mark<h>down</h> 技能是我基于开源技能 <h>markitdown</h>，根据实际情况进行整改的。"
+            }
+          ],
+          "next_cursor": null,
+          "status": "finished"
+        },
+        "seconds": 20.499,
+        "calls": [
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "DBhPdbMKCoNlARxI6aGcnhMknyC",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.949,
+            "elapsed_seconds": 1.958,
+            "revision": 3298,
+            "content_chars": 102011,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "IiZjdc7I8o2hDFxfU1dcHhwDnqb",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.337,
+            "elapsed_seconds": 3.305,
+            "revision": 70,
+            "content_chars": 71547,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "BfAedG7YgonKHwxbQPLcVspAnzf",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.163,
+            "elapsed_seconds": 4.477,
+            "revision": 70,
+            "content_chars": 37945,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "NvjhdbpJCoT2D4xanB8cTBaPnGg",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.503,
+            "elapsed_seconds": 5.984,
+            "revision": 3298,
+            "content_chars": 86829,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "Otjmd7jfhokWfyxLPEPcAvbBnBc",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.701,
+            "elapsed_seconds": 7.694,
+            "revision": 3298,
+            "content_chars": 101179,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "EOoKd3a5SoOvq7xcfU6cS0tinIc",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.376,
+            "elapsed_seconds": 9.078,
+            "revision": 70,
+            "content_chars": 69105,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "Mjn5dXnWyoVZspxONS0ciyAdnJc",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.365,
+            "elapsed_seconds": 10.452,
+            "revision": 70,
+            "content_chars": 42289,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "CIh5dvoK7oapOXx8KJccwrHMn7f",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.274,
+            "elapsed_seconds": 11.73,
+            "revision": 70,
+            "content_chars": 77140,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "RYA3dnU0EoFALJxtalVcHJmGnhd",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.404,
+            "elapsed_seconds": 13.142,
+            "revision": 70,
+            "content_chars": 54049,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "IRnEdz6kNoBP5zxdZKxcTBT8nwe",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.395,
+            "elapsed_seconds": 14.543,
+            "revision": 3298,
+            "content_chars": 33408,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/QPe5w5g7UisbEkkow8XcDmOpn8e",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "ZweodGwa8oKukcxBhRncSEFCnlx",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.046,
+            "elapsed_seconds": 15.592,
+            "revision": 126622,
+            "content_chars": 26282,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "HhuId46B9oWLrFxZwbzcguqInQ5",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.451,
+            "elapsed_seconds": 17.048,
+            "revision": 3298,
+            "content_chars": 98122,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "AHxUdeYTXovfBOxZi7YcXZ3enCf",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.677,
+            "elapsed_seconds": 18.731,
+            "revision": 70,
+            "content_chars": 107018,
+            "comments_removed": 0
+          },
+          {
+            "arguments": [
+              "docs",
+              "+fetch",
+              "--doc",
+              "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "--scope",
+              "section",
+              "--doc-format",
+              "xml",
+              "--detail",
+              "with-ids",
+              "--max-depth",
+              "-1",
+              "--start-block-id",
+              "B86hd494IoPFO3xtdZ2c0Yngnsh",
+              "--as",
+              "user",
+              "--format",
+              "json"
+            ],
+            "seconds": 1.755,
+            "elapsed_seconds": 20.494,
+            "revision": 3298,
+            "content_chars": 80317,
+            "comments_removed": 0
+          }
+        ],
+        "diagnostics": {
+          "creation_months": {},
+          "sources": [
+            {
+              "month": "2026-01",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 184,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-09",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 104,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-06",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 56,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-08",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 168,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-02",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 180,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-10",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 96,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-07",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 57,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-11",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 113,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-08",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 73,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-10",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": true,
+              "records": 119,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-04",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 173,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2025-12",
+              "url": "https://waytoagi.feishu.cn/wiki/GL7xwM3fyitr4kkiv76c1GHjnNg",
+              "cache_hit": false,
+              "active": false,
+              "records": 159,
+              "cache_age_seconds": null
+            },
+            {
+              "month": "2026-05",
+              "url": "https://waytoagi.feishu.cn/wiki/FjiOwWp2giA7hRk6jjfcPioCnAc",
+              "cache_hit": false,
+              "active": false,
+              "records": 142,
+              "cache_age_seconds": null
+            }
+          ],
+          "record_actions": [],
+          "native_pages": 1,
+          "native_candidates": 9,
+          "months_read": [
+            "2026-09",
+            "2026-07",
+            "2026-06",
+            "2026-03",
+            "2026-01",
+            "2025-09",
+            "2025-06",
+            "2026-08",
+            "2026-02",
+            "2025-10",
+            "2025-07",
+            "2025-11",
+            "2025-08",
+            "2026-10",
+            "2026-04",
+            "2025-12",
+            "2026-05"
+          ],
+          "unmatched_candidates": 5,
+          "delivered": 4
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Creation month as safe lower bound, including migration/copy, deferred to ZENO-44.",
+    "First matched or cached record does not prove later unread logs contain no updates.",
+    "Unmatched candidates may still require scanning every remaining month.",
+    "No full five-tool recapture, browser visual review or production release."
+  ],
+  "issue": "https://linear.app/zenokat/issue/ZENO-44"
+}

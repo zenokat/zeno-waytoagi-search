@@ -12,7 +12,8 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 from experiments.zen43.core.source import daily, log_entries, write_json, xml_root
-from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MONTH_CACHE_VERSION, MonthlyLogs, merge_latest, months_between
+from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MONTH_CACHE_VERSION, MonthlyLogs, merge_latest
+from experiments.zen43.core.creation_months import month_routes, next_month
 
 RECORD_CACHE_VERSION = 1
 
@@ -105,9 +106,9 @@ def summaries(context, articles):
         else:
             continue
         actions.append({"article_id": token, "mode": mode, "date": found[token]["date"]})
-    for month in months_between(str(daily.SUPPORTED_FROM), str(logs.today)):
-        if all(token in found for token in tokens.values()):
-            break
+    routes = month_routes(context, [token for token in tokens.values() if token not in found],
+                          str(daily.SUPPORTED_FROM), str(logs.today))
+    while (month := next_month(routes, found, logs.loaded)) is not None:
         current = {}
         merge_latest(current, logs.read(month))
         for token in tokens.values():
@@ -136,5 +137,5 @@ def summaries(context, articles):
         else:
             result["status"] = "no_summary_in_matched_record" if row else "not_found_in_observed_logs"
         results.append(result)
-    context.diagnostics = {"sources": context.sources, "months_read": list(logs.loaded), "summary_actions": actions}
+    context.diagnostics.update({"sources": context.sources, "months_read": list(logs.loaded), "summary_actions": actions})
     return {"results": results}

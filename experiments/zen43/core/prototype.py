@@ -34,8 +34,9 @@ class Prototype:
 
     def call(self, arguments):
         """执行 arguments 中的只读 CLI，立即去评论；返回响应并在临时目录记录去评论后的证据。"""
-        if arguments[:2] not in [["docs", "+fetch"], ["drive", "+search"], ["wiki", "+node-get"], ["docs", "+media-preview"]]:
-            raise ValueError("原型只允许指定的四类只读 CLI 调用")
+        if (arguments[:2] not in [["docs", "+fetch"], ["drive", "+search"], ["wiki", "+node-get"], ["docs", "+media-preview"]]
+                and arguments[:3] != ["drive", "metas", "batch_query"]):
+            raise ValueError("原型只允许指定的只读 CLI 调用")
         args = [*arguments, "--as", "user", "--format", "json"]
         if self.profile:
             args += ["--profile", self.profile]

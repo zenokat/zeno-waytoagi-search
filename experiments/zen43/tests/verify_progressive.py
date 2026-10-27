@@ -3,7 +3,7 @@
 只替代外部 CLI 响应与当前日期；真实解析、月份缓存和续查状态仍由原型执行。
 """
 
-from datetime import date
+from datetime import date, datetime
 import json
 from pathlib import Path
 import tempfile
@@ -50,6 +50,13 @@ class ProgressiveChecks(unittest.TestCase):
             return {"data": {"results": [{"result_meta": {"token": t, "url": "https://example.com/"+t},
                                           "summary_highlighted": "片段 "+t} for t in tokens],
                              "has_more": not later, "page_token": None if later else "next"}}
+        if args[:3] == ["drive", "metas", "batch_query"]:
+            docs = json.loads(args[args.index("--data") + 1])["request_docs"]
+            months = {"oldarticle": "2025-06", "late": "2025-06", "september": "2026-09"}
+            return {"data": {"metas": [{"doc_token": "docx-" + doc["doc_token"],
+                "request_doc_info": doc,
+                "create_time": str(int(datetime.fromisoformat(months.get(doc["doc_token"], "2026-10") +
+                    "-01T00:00:00+08:00").timestamp()))} for doc in reversed(docs)]}}
         block = args[args.index("--start-block-id") + 1]
         if args[args.index("--scope") + 1] == "range":
             token = block.removeprefix("entry")
@@ -66,6 +73,30 @@ class ProgressiveChecks(unittest.TestCase):
     def context(self):
         """返回共用测试缓存的新工具上下文，模拟新提交或新主题。"""
         return Prototype(self.folder.name)
+
+    def test_search_uses_creation_month_and_keeps_public_fields(self):
+        """搜索响应时间为零时批量补元数据，首读创建月凑三条；时间路由不泄露进业务返回。"""
+        def response(args):
+            """返回三篇六月创建的候选与六月日志；元数据故意逆序且使用不同底层 token。"""
+            result = self.respond(args)
+            if args[:2] == ["drive", "+search"]:
+                result["data"].update(results=[{"result_meta": {"token": t, "create_time": 0},
+                    "summary_highlighted": "片段 " + t} for t in ("a", "b", "c")], has_more=False)
+            elif args[:3] == ["drive", "metas", "batch_query"]:
+                for meta in result["data"]["metas"]:
+                    meta["create_time"] = "1748707200"
+            elif self.anchor["months"]["2025-06"]["block_id"] in args:
+                result["data"]["document"]["content"] = log_xml("2025-06", ["a", "b", "c"])
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.search(query="RAG")
+        self.assertEqual(p.diagnostics["months_read"], ["2025-06"])
+        self.assertEqual([r["date"] for r in result["results"]], ["2025-06-20"] * 3)
+        self.assertEqual(len(p.calls), 3)
+        self.assertEqual(set(result["results"][0]), {"article_id", "url", "title", "date", "snippet"})
+        self.assertEqual(result["status"], "finished")
 
     def test_continuation_fills_three_across_native_pages_and_months(self):
         """首轮和续轮均凑满三条；第二轮自动跨原生页及月份，六篇文章不重复。"""
@@ -197,7 +228,7 @@ class ProgressiveChecks(unittest.TestCase):
             session, generation = result["next_cursor"].split(":")
             path = p.cache / f"{session}-search-{generation}.json"
             state = json.loads(path.read_text())
-            state.update(month_offset=len(state["months"]), native_done=True)
+            state.update(month_offset=len(state["months"]), months_read=state["months"], native_done=True)
             path.write_text(json.dumps(state))
             continued = self.context()
             next_result = continued.search(cursor=result["next_cursor"])
@@ -220,7 +251,7 @@ class ProgressiveChecks(unittest.TestCase):
         result = p.search(query="RAG", since="2026-09-01", until="2026-09-30")
         self.assertIn("a", [r["article_id"] for r in result["results"]])
         self.assertTrue(all(r["date"].startswith("2026-09") for r in result["results"]))
-        self.assertTrue(all(call["arguments"][:2] == ["drive", "+search"] for call in p.calls))
+        self.assertFalse(any(call["arguments"][:2] == ["docs", "+fetch"] for call in p.calls))
         self.assertTrue(all(source["cache_hit"] for source in p.sources))
 
     def test_date_search_fills_across_months_and_returns_short_final_page(self):
@@ -287,15 +318,123 @@ class ProgressiveChecks(unittest.TestCase):
             self.assertIn("entrypeer", other.calls[0]["arguments"])
         self.assertEqual(logs.cache_path("2026-09").read_text(), before)
 
-    def test_unfamiliar_old_article_scans_until_found(self):
-        """只有完全陌生 token 才逐月查找；首次需要十八次读取，再次调用零请求。"""
+    def test_unfamiliar_old_article_starts_at_creation_month(self):
+        """陌生旧文章补取真实创建时间后直达创建月；首次两次请求，重复输入与暖缓存不增请求。"""
         p = self.context()
-        result = p.summaries(["oldarticle"])
+        result = p.summaries(["oldarticle", "oldarticle"])
         self.assertEqual(result["results"][0]["summary"], "原摘要 oldarticle")
-        self.assertEqual(len(p.calls), 18)
+        self.assertEqual(len(p.calls), 2)
+        self.assertEqual(p.calls[0]["arguments"][:3], ["drive", "metas", "batch_query"])
+        self.assertEqual(p.diagnostics["months_read"], ["2025-06"])
+        self.assertEqual(len(result["results"]), 2)
         reused = self.context()
         reused.summaries(["oldarticle"])
         self.assertEqual(reused.calls, [])
+
+    def test_creation_miss_moves_forward_and_reuses_month_cache(self):
+        """创建月无记录时向现在逐月查，已读历史月份供后续文章复用，不重复来源请求。"""
+        def response(args):
+            """把 late 的收录安排在 2025-08，保留其六月创建时间；返回外部响应。"""
+            result = self.respond(args)
+            if self.anchor["months"]["2025-08"]["block_id"] in args:
+                result["data"]["document"]["content"] = log_xml("2025-08", ["late"])
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.summaries(["late"])
+            self.assertEqual(p.diagnostics["months_read"], ["2025-06", "2025-07", "2025-08"])
+            self.assertEqual(result["results"][0]["date"], "2025-08-20")
+            reused = self.context()
+            reused.summaries(["oldarticle", "late"])
+            self.assertEqual(reused.calls, [])
+
+    def test_unavailable_metadata_falls_back_without_losing_batch_items(self):
+        """部分元数据缺失、零时间或单篇失败时仍完成摘要查找，诊断不污染批量返回。"""
+        def response(args):
+            """只返回一篇零时间、一篇无权限，第三篇省略；其摘要仍可从日志获得。"""
+            if args[:3] == ["drive", "metas", "batch_query"]:
+                return {"data": {"metas": [{"request_doc_info": {"doc_token": "a"}, "create_time": "0"}],
+                                 "failed_list": [{"token": "b", "code": 970003}]}}
+            return self.respond(args)
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.summaries(["a", "b", "c"])
+        self.assertEqual([r["status"] for r in result["results"]], ["found"] * 3)
+        self.assertEqual(p.diagnostics["months_read"], ["2026-10"])
+        self.assertEqual([p.diagnostics["creation_months"][t]["fallback"] for t in ("a", "b", "c")],
+                         ["invalid_create_time", "metadata_failed", "metadata_missing"])
+        self.assertNotIn("creation_months", json.dumps(result))
+
+    def test_metadata_request_failure_is_not_an_empty_success(self):
+        """整批接口失败仍报错，不把未查到时间或未执行日志查询当作查询结束。"""
+        with patch.object(daily, "run_cli", side_effect=ValueError("metadata offline")):
+            with self.assertRaisesRegex(ValueError, "metadata offline"):
+                self.context().summaries(["a"])
+
+    def test_date_window_clips_creation_route_but_keeps_older_articles(self):
+        """文章创建早于日期窗口时从窗口首月向后查；晚于窗口的文章不触发窗口外读取。"""
+        def response(args):
+            """只返回六月创建、十月收录的 late，以及十月创建的 a；没有更多原生候选。"""
+            result = self.respond(args)
+            if args[:2] == ["drive", "+search"]:
+                result["data"].update(results=[{"result_meta": {"token": token}}
+                                             for token in ("late", "a")], has_more=False)
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.search(query="RAG", since="2026-09-21", until="2026-10-24")
+            self.assertEqual(p.diagnostics["months_read"], ["2026-09", "2026-10"])
+            self.assertEqual([r["article_id"] for r in result["results"]], ["late", "a"])
+        with tempfile.TemporaryDirectory() as folder, patch.object(daily, "run_cli", side_effect=response):
+            p = Prototype(folder)
+            result = p.search(query="RAG", since="2026-09-21", until="2026-09-30")
+            self.assertEqual(p.diagnostics["months_read"], ["2026-09"])
+            self.assertEqual(result["results"], [])
+            self.assertEqual(result["status"], "finished")
+
+    def test_metadata_batches_deduplicate_and_use_request_identity(self):
+        """超过二百输入拆批且去重；响应逆序、底层 token 不同仍对应正确月份与输入。"""
+        tokens = ["old" + str(index) for index in range(201)]
+        batches = []
+
+        def response(args):
+            """模拟 201 篇六月文章；记录批量规模，返回逆序元数据与同月真实格式日志。"""
+            if args[:3] == ["drive", "metas", "batch_query"]:
+                docs = json.loads(args[args.index("--data") + 1])["request_docs"]
+                batches.append(len(docs))
+                return {"data": {"metas": [{"doc_token": "different-" + doc["doc_token"],
+                    "request_doc_info": doc, "create_time": "1748707200"} for doc in reversed(docs)]}}
+            result = self.respond(args)
+            if self.anchor["months"]["2025-06"]["block_id"] in args:
+                result["data"]["document"]["content"] = log_xml("2025-06", tokens)
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.summaries(tokens + [tokens[0]])
+        self.assertEqual(batches, [200, 1])
+        self.assertEqual(p.diagnostics["months_read"], ["2025-06"])
+        self.assertEqual([r["input"] for r in result["results"]], tokens + [tokens[0]])
+        self.assertTrue(all(r["status"] == "found" for r in result["results"]))
+
+    def test_creation_month_uses_reading_timezone(self):
+        """UTC 月末但阅读时区已跨月时，直接查本地九月，避免多读八月。"""
+        def response(args):
+            """输入命令，返回 UTC 八月末创建时间及既有九月摘要。"""
+            result = self.respond(args)
+            if args[:3] == ["drive", "metas", "batch_query"]:
+                result["data"]["metas"][0]["create_time"] = str(int(
+                    datetime.fromisoformat("2026-08-31T16:30:00+00:00").timestamp()))
+            return result
+
+        with patch.object(daily, "run_cli", side_effect=response):
+            p = self.context()
+            result = p.summaries(["september"])
+        self.assertEqual(p.diagnostics["months_read"], ["2026-09"])
+        self.assertEqual(result["results"][0]["status"], "found")
 
     def test_wrong_block_identity_is_not_returned_as_summary(self):
         """过期位置返回了别的文章时明确失败，不写入成功缓存或悄悄逐月降级。"""

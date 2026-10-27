@@ -52,6 +52,8 @@ def scenario_revision(scenario):
 
 def command_purpose(arguments, method):
     """根据真实 arguments 与工具 method 生成中文命令作用；返回说明字符串，不改变命令。"""
+    if arguments[:3] == ["drive", "metas", "batch_query"]:
+        return "批量补取尚未匹配文章的真实创建时间，用于优先定位日志月份。"
     options = dict(zip(arguments[2::2], arguments[3::2]))
     command = arguments[:2]
     if command == ["drive", "+search"]:
@@ -159,7 +161,7 @@ def run_demo(output):
     dates_only, cached = capture("按日期发现", "先按日期选择月份，只读取 2026 年 9 月；月内实际遇到重复文章才保留最近一次。不附摘要。",
         {"since": "2026-09-01", "until": "2026-09-30"}, "search", since="2026-09-01", until="2026-09-30")
     assert [source["month"] for source in cached.sources] == ["2026-09"]
-    assert len(cached.calls) == 1
+    assert len(cached.calls) == (0 if cached.sources[0]["cache_hit"] else 1)
     assert all("summary" not in item for item in dates_only["results"])
     cache_path = MonthlyLogs(cached).cache_path("2026-09")
     cached_month = json.loads(cache_path.read_text())
@@ -172,7 +174,7 @@ def run_demo(output):
         {"query": "Agent", "since": "2026-09-01", "until": "2026-09-30"}, "search",
         query="Agent", since="2026-09-01", until="2026-09-30")
     assert cross_topic.diagnostics["record_actions"] or any(source["cache_hit"] for source in cross_topic.sources)
-    assert all(c["arguments"][:2] == ["drive", "+search"] for c in cross_topic.calls)
+    assert not any(c["arguments"][:2] == ["docs", "+fetch"] for c in cross_topic.calls)
     # 只模拟缓存年龄，不模拟外部响应；过期后章节仍通过真实只读请求获取。
     cached_month["fetched_at"] = time.time() - HISTORY_TTL_SECONDS - 1
     write_json(cache_path, cached_month)
@@ -207,7 +209,7 @@ def run_demo(output):
 
     old_article = json.loads((Path(__file__).resolve().parents[1] / "data/summary-lookup-samples.json").read_text())[0]
     cold_cache = output / "PROTOTYPE-wipe-me-summary-cold"
-    cold_summary, cold_context = capture("陌生旧文章摘要", "独立空缓存，仅输入文章 token；没有任何日志位置，只能逐月向前查找。这是仍存在的性能缺口。",
+    cold_summary, cold_context = capture("陌生旧文章摘要", "独立空缓存，仅输入文章 token；批量补取创建时间后先查创建月，未命中再逐月向现在查。",
         {"articles": [old_article["article_id"]], "演示前置": "独立空缓存，不提供已知日期或日志块"}, "summaries",
         cache_override=cold_cache, articles=[old_article["article_id"]])
     assert cold_summary["results"][0]["summary"] == old_article["summary"]
@@ -222,7 +224,7 @@ def run_demo(output):
     assert old_article["article_id"] in [row["article_id"] for row in old_search["results"]]
     assert all(c["arguments"][:2] == ["drive", "+search"] for c in old_search_context.calls)
     checks["跨工具复用"] = "摘要找到的旧文章可供检索直接匹配；仅 1 次 drive 搜索，0 次日志请求"
-    checks["陌生文章缺口"] = f"旧文章首次 {len(cold_context.calls)} 次读取，再次 0 次；首次没有假装已知日志位置"
+    checks["陌生文章缺口"] = f"创建月优先：旧文章首次 {len(cold_context.calls)} 次请求，再次 0 次；创建时间由元数据接口取得"
 
     # 沿同一真实会话继续，确认原生下一页确实在需要时才发生，而非仅做本地切片。
     cursor, seen, continuation_evidence = second["next_cursor"], {r["article_id"] for r in search["results"] + second["results"]}, []

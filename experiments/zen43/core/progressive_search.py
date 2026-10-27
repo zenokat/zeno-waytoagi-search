@@ -1,4 +1,4 @@
-"""默认三条的渐进检索：保存候选与月度匹配进度，按需继续，不以创建月份丢弃文章。
+"""默认三条的渐进检索：保存候选与月度匹配进度，未知文章优先从创建月匹配。
 
 先按候选 token 定向匹配缓存；过期定点刷新，未知记录才逐月查找。
 一次提交按需推进候选、过期条目与月份，凑满三条或查完后才交付。
@@ -14,6 +14,7 @@ import time
 from experiments.zen43.core.source import SPACE, daily, write_json
 from experiments.zen43.core.monthly_logs import HISTORY_TTL_SECONDS, MonthlyLogs, merge_latest, months_between
 from experiments.zen43.core.summary_reader import cached_records, refresh_record
+from experiments.zen43.core.creation_months import month_routes, next_month
 
 PAGE_SIZE = 3
 
@@ -65,11 +66,20 @@ def match_cached_candidates(logs, state, actions):
 
 
 def fetch_month(logs, state):
-    """读取 state 尚未处理的最新月份并合并范围内记录；递增月份进度，无返回值。"""
-    month = state["months"][state["month_offset"]]
+    """按 state 的候选创建月或纯日期进度读取下一月；合并范围内记录并保存进度，无返回值。"""
+    if state["query"]:
+        unknown = [token for token in state["candidates"]
+                   if token not in state["records"] and token not in state["month_routes"]]
+        state["month_routes"].update(month_routes(logs.context, unknown, state["since"], state["until"]))
+        month = next_month(state["month_routes"], state["records"], state["months_read"])
+        if month is None:
+            return
+    else:
+        month = state["months"][state["month_offset"]]
+        state["month_offset"] += 1
     records = [r for r in logs.read(month) if state["since"] <= r["date"] <= state["until"]]
     merge_latest(state["records"], records)
-    state["month_offset"] += 1
+    state["months_read"].append(month)
 
 
 def available_results(state):
@@ -92,8 +102,13 @@ def available_results(state):
 def pending_work(state):
     """判断 state 是否还需取原生页或日志月；返回两个布尔值，不把未匹配当缺摘要。"""
     native = bool(state["query"] and not state["native_done"])
-    unresolved = not state["query"] or any(key not in state["records"] for key in state["candidates"])
-    month = state["month_offset"] < len(state["months"]) and unresolved
+    if state["query"]:
+        needs_time = any(token not in state["records"] and token not in state["month_routes"]
+                         for token in state["candidates"])
+        month = (needs_time and any(value not in state["months_read"] for value in state["months"])) or next_month(
+            state["month_routes"], state["records"], state["months_read"]) is not None
+    else:
+        month = state["month_offset"] < len(state["months"])
     return native, month
 
 
@@ -133,6 +148,9 @@ def search(context, query=None, since=None, until=None, cursor=None):
                 fetch_candidates(context, state)
         else:
             state["native_done"] = True
+    # 旧游标只有倒查偏移量；把已经读过的月份迁入去重状态，保留其已匹配记录。
+    state.setdefault("months_read", state["months"][:state["month_offset"]])
+    state.setdefault("month_routes", {})
     expired = match_cached_candidates(logs, state, actions)
     rows = available_results(state)
     while len(rows) < PAGE_SIZE:
@@ -162,10 +180,10 @@ def search(context, query=None, since=None, until=None, cursor=None):
         next_cursor = f"{session}:{generation+1}"
         write_json(context.cache / f"{session}-search-{generation+1}.json", state)
     unknown = set(state["candidates"]) - set(state["records"])
-    context.diagnostics = {"sources": context.sources, "record_actions": actions, "native_pages": state["native_pages"],
+    context.diagnostics.update({"sources": context.sources, "record_actions": actions, "native_pages": state["native_pages"],
                            "native_candidates": len(state["candidates"]),
-                           "months_read": state["months"][:state["month_offset"]],
-                           "unmatched_candidates": len(unknown), "delivered": len(state["delivered"])}
+                           "months_read": state["months_read"],
+                           "unmatched_candidates": len(unknown), "delivered": len(state["delivered"])})
     result = {"results": page, "next_cursor": next_cursor,
               "status": "can_continue" if continuing else "finished"}
     return result
