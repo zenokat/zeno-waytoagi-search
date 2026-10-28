@@ -1,0 +1,242 @@
+<!doctype html>
+<!-- 一次性逻辑原型：固定真实 RAG 前 20 条，用线性基础分与指数时间衰减探索阅读顺序。无网络请求、无持久状态。 -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG 重排参数实验 · WaytoAGI</title>
+<style>
+:root{color-scheme:light;--ink:#233d38;--muted:#687a73;--accent:#236858;--line:#dce5dd;--wash:#f3f5f0;--paper:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}main{max-width:1280px;margin:auto;padding:30px 32px 60px}h1,h2,h3,p{margin:0}h1{font-size:30px;letter-spacing:-1px;line-height:1.4}h2{font-size:19px}h3{font-size:15px}a{color:var(--accent);text-underline-offset:3px}button{font:inherit;cursor:pointer;border:1px solid var(--line);background:white;color:var(--ink);border-radius:7px;padding:7px 12px}button:hover{border-color:var(--accent)}button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #79aa98;outline-offset:3px}button:disabled{cursor:default;opacity:.4}p+p{margin-top:8px}.muted{color:var(--muted)}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.tag{display:inline-block;padding:3px 10px;border:1px solid #d1ded5;border-radius:20px;font-size:11px;color:var(--accent);background:#edf4ed}.head{display:flex;justify-content:space-between;gap:22px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:22px}.head p{margin-top:10px;max-width:850px}.head .tag{white-space:nowrap}.controls{position:sticky;top:0;z-index:2;background:var(--wash);padding:8px 0;display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0 16px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px;min-width:0}.control-title{display:flex;justify-content:space-between;gap:12px;align-items:center}.value{font-size:22px;color:var(--accent);font-weight:650}.control-note{font-size:13px;color:var(--muted);margin:8px 0 19px;min-height:42px}input[type=range]{width:100%;margin:0;accent-color:var(--accent);cursor:pointer}.ticks{display:flex;justify-content:space-between;margin:5px -9px 0}.ticks button{font-size:10px;border:0;background:none;padding:4px 0;flex:1;color:var(--muted);border-radius:0}.ticks button[aria-pressed=true]{font-weight:700;color:var(--accent);background:#edf4ed}.ends{display:flex;justify-content:space-between;margin-top:3px;color:var(--muted);font-size:11px}.distribution{display:flex;align-items:end;gap:4px;height:55px;margin-top:14px}.distribution i{flex:1;background:#b3cec0;min-height:3px;border-radius:2px 2px 0 0}.distribution i:first-child{background:var(--accent)}.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}.decays{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:16px}.decays div{border-left:2px solid #dce6de;padding-left:10px}.decays b{display:block;font-size:17px;font-weight:550}.decays span{font-size:11px;color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}.actions .primary{background:var(--accent);color:white;border-color:var(--accent)}.state{padding:15px 18px;background:#e9f0e7;border-radius:9px;font-size:13px}.state strong{font-size:15px}.state .small{margin-top:6px}.tops{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}.tops ol{padding:0;margin:12px 0 0;list-style:none}.tops li{display:flex;gap:10px;border-top:1px solid var(--line);padding:9px 0;align-items:baseline}.tops li:last-child{padding-bottom:0}.top-number{font:13px ui-monospace,monospace;color:var(--muted);min-width:20px}.top-title{font-size:13px;flex:1}.top-origin{font-size:11px;color:var(--muted);white-space:nowrap}.walk{margin:20px 0}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.tabs button{font-size:12px}.tabs button[aria-selected=true]{color:var(--accent);background:#edf4ed;border-color:#a3bdae}.steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.steps button{font-size:12px}.steps button[aria-current=step]{border-color:var(--accent);background:#f2f6ef}.table-head{display:flex;align-items:baseline;justify-content:space-between;gap:15px;margin:25px 0 12px}.table-wrap{background:white;border:1px solid var(--line);border-radius:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th{text-align:left;padding:13px 12px;color:var(--muted);font-weight:500;font-size:11px;background:#fafbf8;white-space:nowrap}td{padding:16px 12px;border-top:1px solid var(--line);vertical-align:top}td:first-child,th:first-child{padding-left:20px}.rank{font-size:19px;line-height:1.4}.original{color:var(--muted);font-size:14px}.movement{white-space:nowrap;font-size:12px}.up{color:var(--accent);font-weight:600}.down{color:#866859}.unchanged{color:#849089}.article{min-width:250px;max-width:460px}.article>a{font-weight:550;text-decoration:none;font-size:14px}.article>a:hover{text-decoration:underline}.article .note{font-size:11px;color:#806c51;margin-top:5px}.article details{margin-top:6px;color:var(--muted);font-size:12px}.article details p{margin-top:6px;white-space:pre-wrap}.time{white-space:nowrap;font-size:12px}.time small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.num{white-space:nowrap;font:12px/1.7 ui-monospace,monospace}.final{font-weight:600;color:var(--accent)}tr.top-three{background:#f4f8f0}.foot{margin-top:20px}.foot summary{cursor:pointer;font-size:13px;font-weight:600}.foot p{margin-top:10px;font-size:12px;color:var(--muted)}.formula{padding:12px;background:#f5f7f1;border-radius:7px;font-size:12px;margin:12px 0;white-space:pre-wrap}.parameter-copy{margin-top:18px}.parameter-copy input{width:100%;font:12px/1.6 ui-monospace,monospace;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;background:white}.footer{margin-top:22px;color:var(--muted);font-size:11px}summary{cursor:pointer}
+@media(max-width:800px){main{padding:20px 16px 40px}.head{display:block}.head .tag{margin-top:12px}.controls,.tops{grid-template-columns:1fr}.controls{position:static}.panel{padding:17px}h1{font-size:25px}.table-head{display:block}.article{min-width:230px}.control-note{min-height:0}.ticks button{font-size:9px}.table-wrap{border-radius:8px}td,th{padding:12px 9px}}
+</style>
+</head>
+<body>
+<main>
+<header class="head"><div><div class="small muted">WAYTOAGI / 参数实验</div><h1>让近期资料排到多靠前？</h1><p class="muted">固定「RAG」默认前 20 条，只改变阅读顺序。拖动两个滑块，观察基础分优势与时间折损如何共同决定前三条。用于选择参数，尚不是正式检索规则。</p></div><span class="tag">一次性逻辑原型 · ZENO-56</span></header>
+<section class="controls" aria-label="重排参数">
+<div class="panel"><div class="control-title"><h2><label for="ratio">基础分分布</label></h2><output id="ratio-value" class="value" for="ratio"></output></div><p class="control-note">第 1 名的基础分，是第 20 名的多少倍？<br>越往右，越保护默认排序靠前的结果。</p><input id="ratio" type="range" min="0" max="7" step="1" value="3" aria-describedby="ratio-detail"><div id="ratio-ticks" class="ticks"></div><div class="ends"><span>全部同分</span><span>首尾差距大</span></div><div id="distribution" class="distribution" aria-hidden="true"></div><div class="axis"><span id="ratio-detail"></span><span>原第 20 名</span></div></div>
+<div class="panel"><div class="control-title"><h2><label for="half">时间半衰期</label></h2><output id="half-value" class="value" for="half"></output></div><p class="control-note">创建多久后，基础分只剩一半？<br>越往左，旧资料折损越快；最右侧关闭时间影响。</p><input id="half" type="range" min="0" max="9" step="1" value="4" aria-describedby="half-detail"><div id="half-ticks" class="ticks"></div><div class="ends"><span>更偏近期</span><span>更保护默认顺序</span></div><div id="decays" class="decays"></div><p id="half-detail" class="small muted" style="margin-top:9px"></p></div>
+</section>
+<nav class="actions" aria-label="快捷组合"><button id="reset" class="primary">回到起点：2 倍 / 90 天</button><button id="baseline">查看默认顺序</button><button id="recency">只按时间比较</button></nav>
+<section class="state" aria-live="polite"><strong id="status"></strong><p id="tradeoff"></p><p class="small">固定计算日：2026-10-28（新加坡时间）。日期为飞书底层文档创建时间，不代表发表、更新或社区收录日期。</p></section>
+<section class="tops"><div class="panel"><h3>默认先看到的 3 条</h3><ol id="original-top"></ol></div><div class="panel"><h3>当前组合先看到的 3 条</h3><ol id="reranked-top"></ol></div></section>
+
+<div class="table-head"><h2>完整 20 条 · 按当前得分排列</h2><span class="small muted">浅色标出前三条；“变化”相对于原始默认名次</span></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">现在</th><th scope="col">原来</th><th scope="col">变化</th><th scope="col">标题 / 搜索片段</th><th scope="col">创建日期 / 年龄</th><th scope="col">基础分</th><th scope="col">时间系数</th><th scope="col">最终分</th></tr></thead><tbody id="results"></tbody></table></div>
+<section class="panel walk"><h3>引导对照</h3><div id="tabs" class="tabs" role="tablist" aria-label="参数对照场景"></div><div id="walk-panel" role="tabpanel"><p id="walk-description" class="small muted"></p><div id="steps" class="steps"></div><p id="walk-status" class="small muted" style="margin-top:8px"></p></div></section>
+<section class="panel foot"><details><summary>公式、时间来源与样本边界</summary><div class="formula">基础分 R = 1 − (1 − 1/g) × (原名次 − 1) / 19
+时间系数 T = 2^(−文章年龄 / H)
+最终分 S = R × T
+g 为首尾基础分倍数；H 为半衰期天数。关闭衰减时 T = 1。</div><p>本原型选择线性基础分分布：第 1 名固定为 1，第 20 名为 1/g，中间均匀递减。这是待讨论的设计，不是飞书返回的相关度分数。只比较当前 20 条，不据此判断全库检索质量。</p><p>年龄按创建时间至固定计算日的精确天数计算，表内只显示一位小数。显示值四舍五入不参与排序；同分保留原始默认先后。内部用对数分数比较，避免极小分数显示为 0 后丢失排序。</p><p>全部 20 条均有真实时间。19 条来自 drive metas batch_query 的 create_time，并按 request_doc_info.doc_token 对应原 Wiki 条目；原第 1 条为快捷方式，补取 wiki +node-get 的 obj_create_time，与原第 2 条指向同一文档。本页保留两条，不偷偷去重或补入第 21 条。</p><p>部分候选是专区或导航内容，仍按原始搜索结果展示。“搜索片段”只代表命中上下文，不是全文阅读结论。未读取 20 篇全文。</p><p id="provenance"></p><p>为了准备这份快照，共执行 1 次搜索、1 次批量元数据查询、1 次快捷方式节点查询；没有搜索翻页。拖动滑块只在本地计算，不再请求飞书。原始身份信息与分页令牌未嵌入。</p><p>参考机制：<a href="https://docs.openclaw.ai/concepts/memory-search" target="_blank" rel="noopener noreferrer">OpenClaw 时间衰减</a>。基础分转换与参数档位由本原型自定义；所有起始参数均待用户判断。</p></details><div class="parameter-copy"><label for="selection" class="small muted">当前参数（可选中复制给我，刷新页面不会保存）</label><input id="selection" readonly></div></section>
+<footer class="footer">离线单文件 · 无外部脚本与字体 · 参数仅保留在本次页面内存中</footer>
+</main>
+<script id="sample" type="application/json">{"query": "RAG", "capturedAt": "2026-10-28T09:59:27.775111+08:00", "referenceAt": "2026-10-28T00:00:00+08:00", "cliVersion": "1.0.96", "spaceId": "7226178700923011075", "searchCommand": "lark-cli drive +search --query RAG --space-ids 7226178700923011075 --as user --page-size 20 --sort default --format json", "requests": {"search": 1, "batchMetadata": 1, "shortcutNode": 1}, "candidates": [{"rank": 1, "token": "JvJvwf6DGitetfkubLecHdkdn9e", "title": "RAG 知识库", "snippet": "", "url": "https://waytoagi.feishu.cn/wiki/JvJvwf6DGitetfkubLecHdkdn9e?visible_space_id=7226178700923011075", "createdAt": 1710815131, "createdIso": "2024-03-19T10:25:31+08:00", "timeSource": "wiki +node-get · obj_create_time", "note": "快捷方式：与原第 2 条指向同一文档；沿用底层文档创建时间，保留原始 20 条，不去重。"}, {"rank": 2, "token": "PUUfwNkwqielBOkbO5RcjnTQnUd", "title": "RAG 专区", "snippet": "", "url": "https://waytoagi.feishu.cn/wiki/PUUfwNkwqielBOkbO5RcjnTQnUd?visible_space_id=7226178700923011075", "createdAt": 1710815131, "createdIso": "2024-03-19T10:25:31+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 3, "token": "TuxbwncmZia8TikhXvcctGMynbh", "title": "RAG基础", "snippet": "Naive RAG（基础RAG）​", "url": "https://waytoagi.feishu.cn/wiki/TuxbwncmZia8TikhXvcctGMynbh?visible_space_id=7226178700923011075", "createdAt": 1754925517, "createdIso": "2025-08-11T23:18:37+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 4, "token": "WdYVw4FiAislLSkp733cxjtAnzc", "title": "第一节：认识RAG", "snippet": "Naive RAG（基础RAG）​", "url": "https://waytoagi.feishu.cn/wiki/WdYVw4FiAislLSkp733cxjtAnzc?visible_space_id=7226178700923011075", "createdAt": 1755768796, "createdIso": "2025-08-21T17:33:16+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 5, "token": "ITZGwXTxmixyU7kBjbgc7pTtnZg", "title": "RAG提示工程(一)：基础概念", "snippet": "高级 RAG 技术：图解概览 [译]: https://baoyu.io/translations/rag/advanced-rag-techniques-an-illustrated-overview", "url": "https://waytoagi.feishu.cn/wiki/ITZGwXTxmixyU7kBjbgc7pTtnZg?visible_space_id=7226178700923011075", "createdAt": 1720017917, "createdIso": "2024-07-03T22:45:17+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 6, "token": "PWpWwi7KPihhoCkEJK0ctD3Annd", "title": "开发：RAG高阶技巧-如何实现窗口上下文检索", "snippet": "在本文中，我们将介绍一种提高RAG（Retrieval-Augmented Generation）模型检索效果的高阶技巧，即窗口上下文检索。", "url": "https://waytoagi.feishu.cn/wiki/PWpWwi7KPihhoCkEJK0ctD3Annd?visible_space_id=7226178700923011075", "createdAt": 1706495954, "createdIso": "2024-01-29T10:39:14+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 7, "token": "FsnowaDnii6FXLkkESxcYhyhnae", "title": "AI学什么(第7期)：什么是检索增强生成（RAG）？", "snippet": "请注意，为保证严谨性，在此我们只讨论基于大语言模型的早期RAG，算作是入门了解，后续会有单独文章讨论多模态RAG和Agentic RAG。", "url": "https://waytoagi.feishu.cn/wiki/FsnowaDnii6FXLkkESxcYhyhnae?visible_space_id=7226178700923011075", "createdAt": 1753088713, "createdIso": "2025-07-21T17:05:13+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 8, "token": "KlztwvDuaihSTFkf1sQcuL0inFb", "title": "RAG从入门到入土系统指南v1.0（主页必读，有学习建议，持续更新中）", "snippet": "这是一个系统学习RAG的指南，RAG技术在AI大模型应用中的重要性不言而喻，但是在我学习中发现真正系统的学习资料很少，相关论文在搜集的时候也是让人头秃，很多项目也是并不全面，所以我打算写这份指南，系统的带大家学习RAG技术，由于是第一次写系统学习资料，有什么逻辑上的问题还请见谅（先叠个甲）。", "url": "https://waytoagi.feishu.cn/wiki/KlztwvDuaihSTFkf1sQcuL0inFb?visible_space_id=7226178700923011075", "createdAt": 1755768334, "createdIso": "2025-08-21T17:25:34+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 9, "token": "Az1kwbx64iS5clkHSmac53Dlnhb", "title": "从基础检索到生产级 AI 系统的 10 个 RAG 项目", "snippet": "1. Hybrid Search RAG（混合搜索 RAG）", "url": "https://waytoagi.feishu.cn/wiki/Az1kwbx64iS5clkHSmac53Dlnhb?visible_space_id=7226178700923011075", "createdAt": 1790689633, "createdIso": "2026-09-29T21:47:13+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 10, "token": "JG7rwbXKzi1f0Lk9Br8crFmPn8g", "title": "RAG 系统开发中的 12 大痛点及解决方案", "snippet": "原文：12 RAG Pain Points and Proposed Solutions", "url": "https://waytoagi.feishu.cn/wiki/JG7rwbXKzi1f0Lk9Br8crFmPn8g?visible_space_id=7226178700923011075", "createdAt": 1707103773, "createdIso": "2024-02-05T11:29:33+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 11, "token": "WiAwwqSfYiT8sKkYU33c7FMpnvh", "title": "开发：产品视角的大模型 RAG 应用", "snippet": "同时，也想从产品视角出发，分享我所理解的大模型 RAG 应用，以及我作为产品这一角色，在实践过程中的经验（坑）。", "url": "https://waytoagi.feishu.cn/wiki/WiAwwqSfYiT8sKkYU33c7FMpnvh?visible_space_id=7226178700923011075", "createdAt": 1705941507, "createdIso": "2024-01-23T00:38:27+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 12, "token": "S0Zww5IHziMrWykIOuTcLt44nah", "title": "RAG&知识图谱", "snippet": "认知误区：你以为的 RAG vs 真实的 RAG", "url": "https://waytoagi.feishu.cn/wiki/S0Zww5IHziMrWykIOuTcLt44nah?visible_space_id=7226178700923011075", "createdAt": 1748421837, "createdIso": "2025-05-28T16:43:57+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 13, "token": "Eq2wwmVIsi40TukzRgpcCbAgnac", "title": "第5课：知识库RAG与记忆", "snippet": "因此，可以采用检索-生成联合训练（End-to-End RAG Fine-tuning），让模型学会更好地利用检索结果，最终提升RAG系统的整体性能。", "url": "https://waytoagi.feishu.cn/wiki/Eq2wwmVIsi40TukzRgpcCbAgnac?visible_space_id=7226178700923011075", "createdAt": 1763207597, "createdIso": "2025-11-15T19:53:17+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 14, "token": "ElzvwVnzliVUAqk6oMQcXXKcnYc", "title": "别让“无效分块”毁了你的RAG！优化效果提升80%的秘密", "snippet": "大模型RAG长文本难题：分块是核心解法.mp3", "url": "https://waytoagi.feishu.cn/wiki/ElzvwVnzliVUAqk6oMQcXXKcnYc?visible_space_id=7226178700923011075", "createdAt": 1755067508, "createdIso": "2025-08-13T14:45:08+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 15, "token": "U696wvpo9iIgMqk3qN7c4heHnHc", "title": "RAG性能提升策略和评估方法（产品视角）", "snippet": "知识问答系统：RAG 可以用于构建问答系统，用户提出问题，RAG 模型从大规模的文档集合中检索相关的文档，然后生成回答。", "url": "https://waytoagi.feishu.cn/wiki/U696wvpo9iIgMqk3qN7c4heHnHc?visible_space_id=7226178700923011075", "createdAt": 1718765237, "createdIso": "2024-06-19T10:47:17+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 16, "token": "SvhJw1LcJikjepkzHmhchSFdnbf", "title": "检索增强生成 (RAG)", "snippet": "Meta AI 的研究人员引入了一种叫做检索增强生成（Retrieval Augmented Generation，RAG）(opens in a new tab)的方法来完成这类知识密集型的任务。", "url": "https://waytoagi.feishu.cn/wiki/SvhJw1LcJikjepkzHmhchSFdnbf?visible_space_id=7226178700923011075", "createdAt": 1720148935, "createdIso": "2024-07-05T11:08:55+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 17, "token": "QBssw7z4oiGS40kDlltcjozBnxc", "title": "胎教级教程：万字长文带你理解 RAG 全流程", "snippet": "RAG 的流程相对复杂，为了让大家更好的理解 RAG，我们先用大家比较熟悉的 AI 搜索来引出 RAG。", "url": "https://waytoagi.feishu.cn/wiki/QBssw7z4oiGS40kDlltcjozBnxc?visible_space_id=7226178700923011075", "createdAt": 1727330199, "createdIso": "2024-09-26T13:56:39+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 18, "token": "DiXBwr6c0imykpkkrBIcUXPXn0e", "title": "问：RAG 是什么？", "snippet": "RAG（Retrieval-Augmented Generation），即检索增强生成，是一种结合检索和生成能力的自然语言处理架构，它旨在为大语言模型（LLM）提供额外的、来自外部知识源的信息。", "url": "https://waytoagi.feishu.cn/wiki/DiXBwr6c0imykpkkrBIcUXPXn0e?visible_space_id=7226178700923011075", "createdAt": 1713185661, "createdIso": "2024-04-15T20:54:21+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 19, "token": "NsEfw6vatitxzdkNIBUcqbvsnQc", "title": "开发：LangChain-RAG必备：向量数据库如何CRUD", "snippet": "而聊到RAG，我们就很难避开使用RAG的基础设施-向量数据库。", "url": "https://waytoagi.feishu.cn/wiki/NsEfw6vatitxzdkNIBUcqbvsnQc?visible_space_id=7226178700923011075", "createdAt": 1705896751, "createdIso": "2024-01-22T12:12:31+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}, {"rank": 20, "token": "TcwvwTa7Mij60WkM1b7cojnEnIg", "title": "通过增强PDF结构识别，革新检索增强生成技术(RAG)", "snippet": "目前，主流的基础模型公司已经开放了嵌入向量（Embedding）和聊天 API 接口，LangChain 等框架也已经集成了 RAG 流程，似乎 RAG 中的关键模型和步骤都已经得到解决。", "url": "https://waytoagi.feishu.cn/wiki/TcwvwTa7Mij60WkM1b7cojnEnIg?visible_space_id=7226178700923011075", "createdAt": 1706708722, "createdIso": "2024-01-31T21:45:22+08:00", "timeSource": "drive metas batch_query · create_time", "note": ""}]}</script>
+<script>
+/** 纯计算模块：输入固定候选与两个参数，返回得分及顺序；不读取或修改页面。 */
+const Ranking = {
+  /** 输入原名次 rank、条目数 count、首尾倍数 ratio；返回线性分布的正基础分。 */
+  baseScore(rank, count, ratio) {
+    return count === 1 ? 1 : 1 - (1 - 1 / ratio) * (rank - 1) / (count - 1);
+  },
+  /** 输入年龄天数 ageDays 与半衰期 halfLife（null 表示关闭）；返回 0～1 时间系数。 */
+  decay(ageDays, halfLife) {
+    return halfLife === null ? 1 : Math.pow(2, -ageDays / halfLife);
+  },
+  /** 输入 candidates、ratio、halfLife 与固定 referenceAt；返回新数组，附带年龄、分数和新名次。 */
+  rank(candidates, ratio, halfLife, referenceAt) {
+    const referenceSeconds = Date.parse(referenceAt) / 1000;
+    /** 输入候选 item；返回附带年龄、基础分、时间系数与对数分数的记录。 */
+    const scored = candidates.map(function scoreCandidate(item) {
+      const ageDays = Math.max(0, (referenceSeconds - item.createdAt) / 86400);
+      const base = Ranking.baseScore(item.rank, candidates.length, ratio);
+      const time = Ranking.decay(ageDays, halfLife);
+      // 比较对数分数与比较乘积等价，且不会因极小乘积下溢而制造假同分。
+      const logScore = Math.log2(base) - (halfLife === null ? 0 : ageDays / halfLife);
+      return {...item, ageDays, base, time, score:base * time, logScore};
+    });
+    /** 输入两条已打分记录，返回降序比较值；同分时按默认名次比较。 */
+    scored.sort(function compareScores(left, right) { return right.logScore - left.logScore || left.rank - right.rank; });
+    /** 输入记录与新索引，返回附带一开始计数的新名次的副本。 */
+    return scored.map(function attachPosition(item, index) { return {...item, position:index + 1}; });
+  }
+};
+</script>
+<script>
+/** 一次性展示层：将两个离散滑块和引导按钮映射为计算参数，重绘完整相关状态。 */
+const sample = JSON.parse(document.getElementById('sample').textContent);
+const ratios = [1, 1.25, 1.5, 2, 3, 5, 10, 20];
+const halfLives = [7, 14, 30, 60, 90, 180, 365, 730, 1460, null];
+const scenarios = [
+  {title:'只看默认', description:'先关闭时间影响。无论基础分差距多大，原顺序都应保留；全部同分时也按原名次排。', steps:[{label:'1. 关闭时间衰减',ratio:2,half:null},{label:'2. 把首尾拉开到 20 倍',ratio:20,half:null},{label:'3. 所有基础分相同',ratio:1,half:null}]},
+  {title:'改变时效力度', description:'固定基础分首尾 2 倍，逐步缩短半衰期。观察原第 9 条近期项目文章和原前三条的变化。', steps:[{label:'1. 先看 730 天',ratio:2,half:730},{label:'2. 缩短到 180 天',ratio:2,half:180},{label:'3. 缩短到 30 天',ratio:2,half:30}]},
+  {title:'保护默认排名', description:'固定半衰期为 365 天，从全部同分到明显保护默认靠前结果；原第 1、2 条日期相同，可观察同日期下基础分的作用。', steps:[{label:'1. 全部基础分相同',ratio:1,half:365},{label:'2. 首尾拉开到 2 倍',ratio:2,half:365},{label:'3. 首尾拉开到 10 倍',ratio:10,half:365}]}
+];
+let activeScenario = 0;
+let nextStep = 0;
+
+/** 按 id 返回页面元素；输入已定义的 id，返回 DOM 节点。 */
+function element(id) { return document.getElementById(id); }
+
+/** 将 tag、text、className 对应的纯文本节点追加到 parent；返回新节点，避免来源文本被当成 HTML。 */
+function appendText(parent, tag, text, className='') {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  node.className = className;
+  parent.append(node);
+  return node;
+}
+
+/** 输入非负数 value；返回适合比较的显示文本，极小非零分数保留科学记数法。 */
+function numberText(value) { return value !== 0 && value < 0.001 ? value.toExponential(2) : value.toFixed(4); }
+
+/** 输入半衰期 half；返回中文档位名称。null 表示关闭衰减。 */
+function halfLabel(half) { return half === null ? '关闭' : half + ' 天'; }
+
+/** 输入候选列表 rows、容器 id 和是否标明原名次 showOrigin；渲染前三条，无返回值。 */
+function renderTop(rows, id, showOrigin) {
+  const list = element(id);
+  list.replaceChildren();
+  for (const [index, row] of rows.slice(0, 3).entries()) {
+    const li = appendText(list, 'li', '');
+    appendText(li, 'span', String(index + 1).padStart(2, '0'), 'top-number');
+    appendText(li, 'span', row.title, 'top-title');
+    if (showOrigin) appendText(li, 'span', '原第 ' + row.rank + ' 条', 'top-origin');
+  }
+}
+
+/** 输入当前重排 rows；展示全部 20 条的原名次、变化、真实日期和得分拆解，无返回值。 */
+function renderRows(rows) {
+  const body = element('results');
+  body.replaceChildren();
+  for (const row of rows) {
+    const tr = appendText(body, 'tr', '', row.position <= 3 ? 'top-three' : '');
+    tr.dataset.originalRank = row.rank;
+    appendText(tr, 'td', String(row.position).padStart(2, '0'), 'rank mono');
+    appendText(tr, 'td', String(row.rank).padStart(2, '0'), 'original mono');
+    const delta = row.rank - row.position;
+    appendText(tr, 'td', delta > 0 ? '上升 ' + delta : delta < 0 ? '下降 ' + -delta : '不变', 'movement ' + (delta > 0 ? 'up' : delta < 0 ? 'down' : 'unchanged'));
+    const article = appendText(tr, 'td', '', 'article');
+    const link = appendText(article, 'a', row.title);
+    link.href = row.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+    if (row.note) appendText(article, 'p', row.note, 'note');
+    const details = appendText(article, 'details', '');
+    appendText(details, 'summary', '查看搜索片段与时间来源');
+    appendText(details, 'p', row.snippet || '接口未返回搜索片段。');
+    appendText(details, 'p', row.timeSource + ' · ' + row.createdIso);
+    const time = appendText(tr, 'td', row.createdIso.slice(0,10), 'time mono');
+    appendText(time, 'small', row.ageDays.toFixed(1) + ' 天前');
+    appendText(tr, 'td', numberText(row.base), 'num');
+    appendText(tr, 'td', numberText(row.time), 'num');
+    appendText(tr, 'td', numberText(row.score), 'num final');
+  }
+}
+
+/** 根据当前滑块状态重算分数并更新全页；无参数，无返回值，不触发网络请求。 */
+function render() {
+  const ratio = ratios[Number(element('ratio').value)];
+  const half = halfLives[Number(element('half').value)];
+  const rows = Ranking.rank(sample.candidates, ratio, half, sample.referenceAt);
+  element('ratio-value').textContent = ratio + ' 倍';
+  element('half-value').textContent = halfLabel(half);
+  element('ratio').setAttribute('aria-valuetext', '第 1 名基础分是第 20 名的 ' + ratio + ' 倍');
+  element('half').setAttribute('aria-valuetext', half === null ? '关闭时间衰减' : '半衰期 ' + half + ' 天');
+  element('ratio-detail').textContent = '原第 1 名：1.000 → 第 20 名：' + (1/ratio).toFixed(3);
+  element('distribution').replaceChildren();
+  for (let rank=1;rank<=20;rank++) {
+    const bar = appendText(element('distribution'), 'i', '');
+    bar.style.height = Ranking.baseScore(rank, 20, ratio) * 100 + '%';
+  }
+  element('decays').replaceChildren();
+  for (const days of [30,90,365,730]) {
+    const box = appendText(element('decays'), 'div', '');
+    appendText(box, 'b', numberText(Ranking.decay(days, half)));
+    appendText(box, 'span', days + ' 天前的系数');
+  }
+  element('half-detail').textContent = half === null ? '所有文章的时间系数均为 1，恢复默认顺序。' : '每过 ' + half + ' 天，得分按比例减半；不按整天取整。';
+  /** 输入记录 row，返回是否相对默认名次发生变化。 */
+  const moved = rows.filter(function movedRow(row) { return row.rank !== row.position; }).length;
+  /** 输入当前前三条中的 row，返回其是否原本属于前三条。 */
+  const retained = rows.slice(0,3).filter(function originalTopRow(row) { return row.rank <= 3; }).length;
+  element('status').textContent = moved + ' / 20 条发生名次变化 · 原前三条保留 ' + retained + ' 条';
+  element('tradeoff').textContent = half === null ? '当前仅保留默认排序。可先选一个半衰期，再调整基础分差距。' : ratio === 1 ? '基础分全部为 1，因此只按创建时间由新到旧排列。同日期时保留默认先后。' : '首尾 ' + ratio + ' 倍的基础分优势，相当于约 ' + (half * Math.log2(ratio)).toFixed(0) + ' 天的时间优势：原第 20 条若比第 1 条新得更多，就可反超。';
+  renderTop(sample.candidates, 'original-top', false);
+  renderTop(rows, 'reranked-top', true);
+  renderRows(rows);
+  element('selection').value = '线性基础分 | 首尾 ' + ratio + ' 倍 | 半衰期 ' + halfLabel(half) + ' | RAG 固定前 20 条 | 计算日 2026-10-28';
+  for (const id of ['ratio','half']) {
+    for (const [index, button] of [...element(id + '-ticks').children].entries()) button.setAttribute('aria-pressed', String(index === Number(element(id).value)));
+  }
+}
+
+/** 输入 ratio 与 half，将两滑块切到对应档位后重绘；无返回值，状态仅在内存。 */
+function setParameters(ratio, half) {
+  element('ratio').value = ratios.indexOf(ratio);
+  element('half').value = halfLives.indexOf(half);
+  render();
+}
+
+/** 处理自由调整；无参数、无返回值，标明当前已离开引导步骤但不覆盖滑块值。 */
+function freePlay() {
+  element('walk-status').textContent = '当前为自由调整。点击场景标签可从已知起点重新开始。';
+  render();
+}
+
+/** 输入 sliderId、values、label；为每一档创建可点击刻度，无返回值。 */
+function buildTicks(sliderId, values, label) {
+  for (const [index,value] of values.entries()) {
+    const button = appendText(element(sliderId + '-ticks'), 'button', label(value));
+    button.type = 'button';
+    button.setAttribute('aria-label', (sliderId === 'ratio' ? '基础分首尾 ' : '半衰期 ') + label(value));
+    /** 切换到本按钮的 index 档位并重绘；无参数、无返回值。 */
+    button.onclick = function chooseTick() { element(sliderId).value=index; freePlay(); };
+  }
+}
+
+/** 重绘当前引导步骤及进度；无参数、无返回值，按顺序启用下一步。 */
+function renderSteps() {
+  const scenario = scenarios[activeScenario];
+  element('steps').replaceChildren();
+  for (const [index, step] of scenario.steps.entries()) {
+    const button = appendText(element('steps'), 'button', step.label);
+    button.type='button'; button.disabled=index>nextStep;
+    if(index===nextStep) button.setAttribute('aria-current','step');
+    /** 应用该引导步骤的参数并推进进度；无参数、无返回值。 */
+    button.onclick = function runStep() { setParameters(step.ratio,step.half); nextStep=index+1; renderSteps(); };
+  }
+  element('walk-status').textContent = nextStep === 3 ? '本组对照完成。可以继续拖动滑块自由比较。' : '已完成 ' + nextStep + ' / 3 步。切换场景会重置为 2 倍 / 关闭衰减。';
+}
+
+/** 输入场景索引 index，重置参数与进度并更新标签状态；无返回值。 */
+function chooseScenario(index) {
+  activeScenario=index; nextStep=0;
+  for(const [i,tab] of [...element('tabs').children].entries()) tab.setAttribute('aria-selected',String(i===index));
+  element('walk-panel').setAttribute('aria-labelledby','scenario-'+index);
+  element('walk-description').textContent=scenarios[index].description;
+  setParameters(2,null); renderSteps();
+}
+
+/** 输入首尾倍数 value，返回刻度文本。 */
+buildTicks('ratio',ratios,function ratioTick(value) { return value+'×'; });
+/** 输入半衰期 value，返回刻度文本；null 显示关闭。 */
+buildTicks('half',halfLives,function halfTick(value) { return value===null?'关闭':String(value); });
+for(const [index,scenario] of scenarios.entries()) {
+  const tab=appendText(element('tabs'),'button',scenario.title);
+  tab.type='button'; tab.id='scenario-'+index; tab.setAttribute('role','tab'); tab.setAttribute('aria-controls','walk-panel');
+  /** 选择此标签对应的引导场景；无参数、无返回值。 */
+  tab.onclick=function openScenario() { chooseScenario(index); };
+}
+element('ratio').oninput=freePlay; element('half').oninput=freePlay;
+/** 回到未确认的起始参数组合；无参数、无返回值。 */
+element('reset').onclick=function resetParameters() { setParameters(2,90); freePlay(); };
+/** 关闭衰减作为默认排序对照；无参数、无返回值。 */
+element('baseline').onclick=function showBaseline() { setParameters(ratios[Number(element('ratio').value)],null); freePlay(); };
+/** 令基础分全相同，只看创建时间；无参数、无返回值。 */
+element('recency').onclick=function showRecency() { setParameters(1,halfLives[Number(element('half').value)]??90); freePlay(); };
+element('provenance').textContent='样本采集：'+sample.capturedAt+'。CLI '+sample.cliVersion+'。检索命令：'+sample.searchCommand;
+chooseScenario(0);
+setParameters(2,90);
+element('walk-status').textContent='当前为自由探索起点 2 倍 / 90 天；点击场景标签开始引导。起点并非已选定参数。';
+</script>
+</body>
+</html>
